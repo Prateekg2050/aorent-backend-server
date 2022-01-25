@@ -19,6 +19,7 @@
   "homepage": "https://github.com/ayush181000/aorent-backend-server#readme",
   "dependencies": {
     "bcrypt": "^5.0.1",
+    "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dayjs": "^1.10.7",
