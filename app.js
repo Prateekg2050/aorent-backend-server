@@ -1,16 +1,24 @@
+// packages imports
 import express from "express";
 import dotenv from "dotenv";
 import colors from "colors";
 import cors from "cors";
 import morgan from "morgan";
 
+// database imports
 import connectDb from "./config/db.js";
+
+// middleware imports
+import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
+
+// routes import
+import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
-const app = express();
-
 connectDb();
+
+const app = express();
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
@@ -19,9 +27,15 @@ if (process.env.NODE_ENV === "development") {
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+app.use("/user", userRoutes);
+
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
+
+// Middleware
+app.use(notFound);
+app.use(errorHandler);
 
 //PORT
 const PORT = process.env.PORT || 8000;
