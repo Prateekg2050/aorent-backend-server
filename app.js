@@ -4,9 +4,13 @@ import colors from "colors";
 import cors from "cors";
 import morgan from "morgan";
 
+import connectDb from "./config/db.js";
+
 dotenv.config();
 
 const app = express();
+
+connectDb();
 
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
