@@ -30,7 +30,7 @@ app.use(express.json());
 app.use("/user", userRoutes);
 
 app.get("/", (req, res) => {
-  res.send("API is running...");
+  res.send("Welcome to AORent server");
 });
 
 // Middleware
