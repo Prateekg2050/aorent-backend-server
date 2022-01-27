@@ -84,7 +84,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @access      Private
 const updateUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findByIdAndUpdate(req.user._id, req.body);
-
+  console.log(user);
   if (user) {
     res.status(204).json({
       user,

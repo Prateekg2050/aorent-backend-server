@@ -13,17 +13,17 @@ import {
 } from "../controllers/userControllers.js";
 import { protect, admin } from "../middleware/authMiddleware.js";
 
-router.route("/").get(protect, admin, getUsers);
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.route("/").get(protect, admin, getUsers); // tested
+router.post("/register", registerUser); // tested
+router.post("/login", loginUser); // tested
 router
   .route("/profile")
-  .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .get(protect, getUserProfile) // tested
+  .put(protect, updateUserProfile); // tested
 router
   .route("/:id")
-  .delete(protect, admin, deleteUser)
-  .get(protect, admin, getUserById)
-  .put(protect, admin, updateUser);
+  .delete(protect, admin, deleteUser) // tested
+  .get(protect, admin, getUserById) // tested
+  .put(protect, admin, updateUser); // tested
 
 export default router;

@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "data:import": "node seeder",
+    "data:destroy": "node seeder -d"
   },
   "repository": {
     "type": "git",
@@ -18,20 +20,20 @@
   },
   "homepage": "https://github.com/ayush181000/aorent-backend-server#readme",
   "dependencies": {
-    "bcrypt": "^5.0.1",
     "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "dayjs": "^1.10.7",
-    "dotenv": "^14.3.0",
+    "dotenv": "^14.3.2",
     "express": "^4.17.2",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.1.8",
     "morgan": "^1.10.0",
+    "multer": "^1.4.4",
     "nodemon": "^2.0.15"
   },
   "engines": {
-    "node": "14.x"
+    "node": "16.x"
   }
 }
