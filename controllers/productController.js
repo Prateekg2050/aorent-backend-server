@@ -1,5 +1,5 @@
-import asyncHandler from "express-async-handler";
-import Product from "../models/productModel.js";
+import asyncHandler from 'express-async-handler';
+import Product from '../models/productModel.js';
 
 // @desc        Fetch all products
 // @route       GET /products
@@ -12,7 +12,7 @@ const getProducts = asyncHandler(async (req, res) => {
     ? {
         name: {
           $regex: req.query.keyword,
-          $options: "i",
+          $options: 'i',
         },
       }
     : {};
@@ -38,7 +38,7 @@ const getProductById = asyncHandler(async (req, res) => {
     res.json(product);
   } else {
     res.status(404);
-    throw new Error("Product not found");
+    throw new Error('Product not found');
   }
 });
 
@@ -50,10 +50,10 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
   if (product) {
     await product.remove();
-    res.json({ message: "Product Removed" });
+    res.json({ message: 'Product Removed' });
   } else {
     res.status(404);
-    throw new Error("Product not found");
+    throw new Error('Product not found');
   }
 });
 
@@ -62,15 +62,15 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @access      Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
   const product = new Product({
-    name: "Sample Name",
+    name: 'Sample Name',
     price: 0,
     user: req.user._id,
-    image: "/images/sample.jpg",
-    brand: "Sample Brand",
-    category: "Sample Category",
+    image: '/images/sample.jpg',
+    brand: 'Sample Brand',
+    category: 'Sample Category',
     countInStock: 0,
     numReviews: 0,
-    description: "Sample Description",
+    description: 'Sample Description',
   });
 
   const createdProduct = await product.save();
@@ -100,7 +100,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     res.json(updatedProduct);
   } else {
     res.status(400);
-    throw new Error("Product not found");
+    throw new Error('Product not found');
   }
 });
 
@@ -119,7 +119,7 @@ const createProductReview = asyncHandler(async (req, res) => {
 
     if (alreadyReviewed) {
       res.status(400);
-      throw new Error("Product already reviewed");
+      throw new Error('Product already reviewed');
     }
 
     const review = {
@@ -139,10 +139,10 @@ const createProductReview = asyncHandler(async (req, res) => {
 
     await product.save();
 
-    res.status(201).json({ mesage: "Review Added" });
+    res.status(201).json({ mesage: 'Review Added' });
   } else {
     res.status(400);
-    throw new Error("Product not found");
+    throw new Error('Product not found');
   }
 });
 
