@@ -13,6 +13,7 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
 // routes import
 import userRoutes from "./routes/userRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 app.use("/user", userRoutes);
+app.use("/product", productRoutes);
 
 app.get("/", (req, res) => {
   res.send("Welcome to AORent server");
