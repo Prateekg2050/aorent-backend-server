@@ -18,7 +18,20 @@ const userSchema = mongoose.Schema(
     },
     avatar: { type: String },
     phoneNumber: { type: Number, required: true },
-    address: { type: String, required: true },
+    kycDetails: {
+      name: { type: String },
+      idType: { type: String, enum: [] },
+      idNumber: { type: String },
+      idImage: { type: String },
+    },
+
+    listings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+
+    currentlyRenting: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    ],
+
+    flagged: { type: Boolean, required: true, default: false },
     isAdmin: {
       type: Boolean,
       required: true,

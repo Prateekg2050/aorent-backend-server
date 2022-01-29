@@ -34,10 +34,7 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      required: true,
-    },
+    image: [{ type: String, required: true }],
     brand: {
       type: String,
       required: true,
@@ -61,15 +58,22 @@ const productSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
-    price: {
-      type: Number,
-      required: true,
-      default: 0,
+    rent: {
+      time: {
+        type: Number,
+        default: 0,
+        required: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
     },
-    countInStock: {
-      type: Number,
-      required: true,
-      default: 0,
+    dateRentedOn: { type: Date },
+    sales: {
+      users: { type: Number, default: 0 },
+      revenue: { type: Number, default: 0 },
     },
     counter: { type: Number, default: 0 },
   },
