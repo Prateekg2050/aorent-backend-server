@@ -7,17 +7,21 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
-    password: {
-      type: String,
-      required: true,
-    },
+    password: { type: String, required: true },
     avatar: { type: String },
-    phoneNumber: { type: Number, required: true },
+
     kycDetails: {
       name: { type: String },
       idType: { type: String, enum: [] },

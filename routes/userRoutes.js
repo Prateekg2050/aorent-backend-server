@@ -19,7 +19,7 @@ router.post('/login', loginUser); // tested
 router
   .route('/profile')
   .get(protect, getUserProfile) // tested
-  .put(protect, updateUserProfile); // tested
+  .patch(protect, updateUserProfile); // tested
 router
   .route('/:id')
   .delete(protect, admin, deleteUser) // tested

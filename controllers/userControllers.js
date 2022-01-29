@@ -7,36 +7,31 @@ import User from '../models/userModel.js';
 // @access      Public
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, address, phoneNumber } = req.body;
+  try {
+    const { name, email, password, address, phoneNumber } = req.body;
 
-  const userExists = await User.findOne({ email });
+    console.log(name, email, password, address, phoneNumber);
+    const user = await User.create({
+      name,
+      email,
+      password,
+      address,
+      phoneNumber,
+    });
 
-  if (userExists) {
+    if (user) {
+      res.status(201).json({
+        status: 'success',
+        user,
+        token: generateToken(user._id),
+      });
+    } else {
+      res.status(404);
+      throw new Error('User not found');
+    }
+  } catch (error) {
     res.status(400);
     throw new Error('User already exists');
-  }
-
-  const user = await User.create({
-    name,
-    email,
-    password,
-    address,
-    phoneNumber,
-  });
-
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      address: user.address,
-      phoneNumber: user.phoneNumber,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(404);
-    throw new Error('User not found');
   }
 });
 
@@ -51,12 +46,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (user && (await user.matchPassword(password))) {
     res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      address: user.address,
-      phoneNumber: user.phoneNumber,
+      user,
       token: generateToken(user._id),
     });
   } else {
@@ -68,6 +58,7 @@ const loginUser = asyncHandler(async (req, res) => {
 // @desc        Get user profile
 // @route       GET /users/profile
 // @access      Private
+
 const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select('-password');
 
@@ -82,11 +73,14 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @desc        Update user profile
 // @route       PUT /users/profile
 // @access      Private
+
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.user._id, req.body);
-  console.log(user);
+  const user = await User.findByIdAndUpdate(req.user._id, req.body, {
+    new: true,
+  });
+
   if (user) {
-    res.status(204).json({
+    res.status(201).json({
       user,
       token: generateToken(user._id),
     });
@@ -107,6 +101,7 @@ const getUsers = asyncHandler(async (req, res) => {
 // @desc        Delete a user
 // @route       DELETE /users/:id
 // @access      Private/Admin
+
 const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
@@ -122,6 +117,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 // @desc        Get user by ID
 // @route       GET /users/:id
 // @access      Private/Admin
+
 const getUserById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select('-password');
 
@@ -136,21 +132,14 @@ const getUserById = asyncHandler(async (req, res) => {
 // @desc        Update user
 // @route       PUT /users/:id
 // @access      Private/Admin
+
 const updateUser = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id);
+  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
 
   if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    user.isAdmin = req.body.isAdmin;
-    const updatedUser = await user.save();
-
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      isAdmin: updatedUser.isAdmin,
-    });
+    res.status(201).json(user);
   } else {
     res.status(404);
     throw new Error('User not found');
