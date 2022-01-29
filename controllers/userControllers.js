@@ -8,16 +8,8 @@ import User from '../models/userModel.js';
 
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { name, email, password, address, phoneNumber } = req.body;
-
-    console.log(name, email, password, address, phoneNumber);
-    const user = await User.create({
-      name,
-      email,
-      password,
-      address,
-      phoneNumber,
-    });
+    // const { name, email, password, address, phoneNumber } = req.body;
+    const user = await User.create(req.body);
 
     if (user) {
       res.status(201).json({
@@ -146,6 +138,16 @@ const updateUser = asyncHandler(async (req, res) => {
   }
 });
 
+const underReviewUsers = asyncHandler(async (req, res) => {
+  const users = await User.find({ underReview: true });
+  if (users) {
+    res.json({ users });
+  } else {
+    res.status(400);
+    throw new Error('No such users found');
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -155,4 +157,5 @@ export {
   getUserById,
   deleteUser,
   updateUser,
+  underReviewUsers,
 };

@@ -7,9 +7,9 @@ const userReviewSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    isApproved: { type: Boolean },
-    isFlag: { type: Boolean },
-    isBlackList: { type: Boolean },
+    isApproved: { type: Boolean, default: false },
+    isFlag: { type: Boolean, default: false },
+    isBlackList: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -10,6 +10,7 @@ import {
   getUserById,
   deleteUser,
   updateUser,
+  underReviewUsers,
 } from '../controllers/userControllers.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -20,6 +21,7 @@ router
   .route('/profile')
   .get(protect, getUserProfile) // tested
   .patch(protect, updateUserProfile); // tested
+router.route('/underReview').get(protect, admin, underReviewUsers); // tested
 router
   .route('/:id')
   .delete(protect, admin, deleteUser) // tested
