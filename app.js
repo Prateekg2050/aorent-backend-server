@@ -38,6 +38,10 @@ app.use('/product', productRoutes);
 app.use('/order', orderRoutes);
 app.use('/upload', uploadRoutes);
 
+app.get('/config/razorpay', (req, res) =>
+  res.send(process.env.RAZORPAY_CLIENT_ID)
+);
+
 const __dirname = path.resolve();
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
