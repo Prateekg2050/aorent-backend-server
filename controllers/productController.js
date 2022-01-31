@@ -6,28 +6,12 @@ import APIFeatures from '../utils/apiFeatures.js';
 // @route       GET /products
 // @access      Public
 const getProducts = asyncHandler(async (req, res) => {
-  // const pageSize = 10;
-  // const page = Number(req.query.pageNumber) || 1;
-
-  // const keyword = req.query.keyword
-  //   ? {
-  //       name: {
-  //         $regex: req.query.keyword,
-  //         $options: 'i',
-  //       },
-  //     }
-  //   : {};
-
-  // const count = await Product.countDocuments({ ...keyword });
-  // const products = await Product.find({ ...keyword })
-  //   .limit(pageSize)
-  //   .skip(pageSize * (page - 1));
   const features = new APIFeatures(Product.find(), req.query)
     .filter()
     .sort()
     .limitFields()
     .paginate();
-
+  features.query = features.query.find({ isRented: { $ne: true } });
   const products = await features.query;
 
   res.json({
@@ -41,7 +25,16 @@ const getProducts = asyncHandler(async (req, res) => {
 // @route       GET /products/:id
 // @access      Public
 const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findByIdAndUpdate(
+  let product = Product.findByIdAndUpdate(
+    req.params.id,
+    {},
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  product = await Product.findByIdAndUpdate(
     { _id: req.params.id },
     { $inc: { counter: 1 } },
     { multi: false }
@@ -58,6 +51,8 @@ const getProductById = asyncHandler(async (req, res) => {
 // @desc        Delete a product
 // @route       DELETE /products/:id
 // @access      Private/Admin
+
+// TODO: Check orders before deleting because order will become null after that
 const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
@@ -90,20 +85,13 @@ const createProduct = asyncHandler(async (req, res) => {
 // @route       PUT /products/:id
 // @access      Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, image, brand, category, countInStock, description } =
-    req.body;
-
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
   if (product) {
-    product.name = name;
-    product.price = price;
-    product.description = description;
-    product.brand = brand;
-    product.image = image;
-    product.category = category;
-    product.countInStock = countInStock;
-
+    // to rerun validators on saving
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } else {

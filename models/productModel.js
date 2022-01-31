@@ -74,12 +74,13 @@ const productSchema = mongoose.Schema(
         default: 0,
       },
     },
-    dateRentedOn: { type: Date },
+    isRented: { type: Boolean, default: false },
+    rentedDate: { type: Date },
     returnDate: {
       type: Date,
       validate: {
         validator: function (val) {
-          return returnDate > dateRentedOn;
+          return returnDate > rentedDate;
         },
         message: 'Return date should be greater than rented on date',
       },
