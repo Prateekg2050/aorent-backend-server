@@ -1,27 +1,40 @@
 import asyncHandler from 'express-async-handler';
 import Product from '../models/productModel.js';
+import APIFeatures from '../utils/apiFeatures.js';
 
 // @desc        Fetch all products
 // @route       GET /products
 // @access      Public
 const getProducts = asyncHandler(async (req, res) => {
-  const pageSize = 10;
-  const page = Number(req.query.pageNumber) || 1;
+  // const pageSize = 10;
+  // const page = Number(req.query.pageNumber) || 1;
 
-  const keyword = req.query.keyword
-    ? {
-        name: {
-          $regex: req.query.keyword,
-          $options: 'i',
-        },
-      }
-    : {};
+  // const keyword = req.query.keyword
+  //   ? {
+  //       name: {
+  //         $regex: req.query.keyword,
+  //         $options: 'i',
+  //       },
+  //     }
+  //   : {};
 
-  const count = await Product.countDocuments({ ...keyword });
-  const products = await Product.find({ ...keyword })
-    .limit(pageSize)
-    .skip(pageSize * (page - 1));
-  res.json({ products, page, pages: Math.ceil(count / pageSize) });
+  // const count = await Product.countDocuments({ ...keyword });
+  // const products = await Product.find({ ...keyword })
+  //   .limit(pageSize)
+  //   .skip(pageSize * (page - 1));
+  const features = new APIFeatures(Product.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const products = await features.query;
+
+  res.json({
+    products,
+    // page,
+    // pages: Math.ceil(count / pageSize),
+  });
 });
 
 // @desc        Fetch single product by ID
@@ -59,23 +72,18 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 // @desc        Create a product
 // @route       POST /products
-// @access      Private/Admin
+// @access      Private
 const createProduct = asyncHandler(async (req, res) => {
-  const product = new Product({
-    name: 'Sample Name',
-    price: 0,
+  const product = await Product.create({
     user: req.user._id,
-    image: '/images/sample.jpg',
-    brand: 'Sample Brand',
-    category: 'Sample Category',
-    countInStock: 0,
-    numReviews: 0,
-    description: 'Sample Description',
+    name: req.body.name,
+    brand: req.body.brand,
+    category: req.body.category,
+    description: req.body.description,
   });
 
-  const createdProduct = await product.save();
-
-  res.status(201).json(createdProduct);
+  if (product) await product.save();
+  res.status(201).json({ product });
 });
 
 // @desc        Update a product

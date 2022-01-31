@@ -94,6 +94,7 @@ const getUsers = asyncHandler(async (req, res) => {
 // @route       DELETE /users/:id
 // @access      Private/Admin
 
+// TODO: Delete products also when we delete the user
 const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
@@ -137,6 +138,10 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 });
+
+// @desc        Get users under review
+// @route       GET /users/underReview
+// @access      Private/Admin
 
 const underReviewUsers = asyncHandler(async (req, res) => {
   const users = await User.find({ underReview: true });

@@ -34,7 +34,8 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    image: [{ type: String, required: true }],
+    image: [{ type: String }],
+    coverImage: String,
     brand: {
       type: String,
       required: true,
@@ -48,16 +49,19 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     reviews: [reviewSchema],
-    rating: {
+    averageRating: {
       type: Number,
       required: true,
-      default: 0,
+      default: 1,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be below 5.0'],
     },
     numReviews: {
       type: Number,
       required: true,
       default: 0,
     },
+    underReview: { type: Boolean, default: true },
     rent: {
       time: {
         type: Number,
@@ -71,13 +75,30 @@ const productSchema = mongoose.Schema(
       },
     },
     dateRentedOn: { type: Date },
+    returnDate: {
+      type: Date,
+      validate: {
+        validator: function (val) {
+          return returnDate > dateRentedOn;
+        },
+        message: 'Return date should be greater than rented on date',
+      },
+    },
     sales: {
       users: { type: Number, default: 0 },
       revenue: { type: Number, default: 0 },
     },
     counter: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
+  }
 );
 
 const Product = mongoose.model('Product', productSchema);
