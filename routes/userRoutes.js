@@ -11,10 +11,12 @@ import {
   deleteUser,
   updateUser,
   underReviewUsers,
+  commonData,
 } from '../controllers/userControllers.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 router.route('/').get(protect, admin, getUsers); // tested
+router.get('/commondata', protect, commonData); // tested
 router.post('/register', registerUser); // tested
 router.post('/login', loginUser); // tested
 router

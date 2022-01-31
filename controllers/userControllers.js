@@ -153,6 +153,21 @@ const underReviewUsers = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc        Get all common data of user
+// @route       GET /users/commondata
+// @access      Private
+
+const commonData = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).populate('listings');
+
+  if (user) {
+    res.json({ user });
+  } else {
+    res.status(400);
+    throw new Error('No such user found');
+  }
+});
+
 export {
   registerUser,
   loginUser,
@@ -163,4 +178,5 @@ export {
   deleteUser,
   updateUser,
   underReviewUsers,
+  commonData,
 };
