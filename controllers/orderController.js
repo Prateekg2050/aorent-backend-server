@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
+import User from '../models/userModel.js';
 
 // @desc    Create new order
 // @route   POST /orders
@@ -30,8 +31,11 @@ const addOrderItems = asyncHandler(async (req, res) => {
       totalPrice,
     });
 
-    const createdOrder = await order.save();
+    const user = await User.findById(req.user._id);
+    user.currentlyRenting.unshift(...orderItems);
+    await user.save();
 
+    const createdOrder = await order.save();
     res.status(201).json({ status: 'success', data: createdOrder });
   }
 });

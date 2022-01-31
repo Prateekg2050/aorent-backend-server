@@ -158,7 +158,10 @@ const underReviewUsers = asyncHandler(async (req, res) => {
 // @access      Private
 
 const commonData = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).populate('listings');
+  const user = await User.findById(req.user._id).populate([
+    'listings',
+    'currentlyRenting',
+  ]);
 
   if (user) {
     res.json({ user });
