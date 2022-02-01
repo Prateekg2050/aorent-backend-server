@@ -12,7 +12,8 @@ import morgan from 'morgan';
 import connectDb from './config/db.js';
 
 // middleware imports
-import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import { notFound } from './middleware/errorMiddleware.js';
+import gloabalErrorHandler from './controllers/errorController.js';
 
 // routes import
 import userRoutes from './routes/userRoutes.js';
@@ -51,7 +52,8 @@ app.get('/', (req, res) => {
 
 // Middleware
 app.use(notFound);
-app.use(errorHandler);
+// app.use(errorHandler);
+app.use(gloabalErrorHandler);
 
 //PORT
 const PORT = process.env.PORT || 5000;

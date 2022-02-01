@@ -1,11 +1,15 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import validator from 'validator';
 
 const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
+      trim: true,
+      required: [true, 'Please tell us your name'],
     },
     phoneNumber: {
       type: String,
@@ -15,9 +19,11 @@ const userSchema = mongoose.Schema(
     },
     email: {
       type: String,
-      required: true,
+      required: [true, 'Please provide your email'],
       unique: true,
       trim: true,
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email'],
     },
     password: { type: String, required: true },
     passwordConfirm: {
