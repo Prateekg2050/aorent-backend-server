@@ -13,6 +13,7 @@ import connectDb from './config/db.js';
 
 // middleware imports
 import gloabalErrorHandler from './controllers/errorController.js';
+import AppError from './utils/appError.js';
 
 // routes import
 import userRoutes from './routes/userRoutes.js';

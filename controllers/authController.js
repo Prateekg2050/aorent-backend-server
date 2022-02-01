@@ -3,6 +3,7 @@ import generateToken from '../utils/generateToken.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import sendEmail from '../utils/email.js';
+import crypto from 'crypto';
 
 // @desc        Register new user
 // @route       POST /user/register
@@ -97,4 +98,37 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { registerUser, loginUser, forgotPassword };
+const resetPassword = asyncHandler(async (req, res, next) => {
+  // 1) Get user based on the token
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(req.params.token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+
+  // 2) If token has not expired, and there is user, set the new passwordResetToken
+  if (!user) {
+    return next(new AppError('Token is invalid or expired', 400));
+  }
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
+  // 3) Update changedPasswordAt property for the user
+  // reseting from user model
+  // 4) Log the user in , send the JWT
+
+  res.status(200).json({
+    status: 'success',
+    token: generateToken(user._id),
+    user: user.select('password'),
+  });
+});
+
+export { registerUser, loginUser, forgotPassword, resetPassword };

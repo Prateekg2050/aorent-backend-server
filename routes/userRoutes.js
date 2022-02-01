@@ -15,6 +15,7 @@ import {
   loginUser,
   registerUser,
   forgotPassword,
+  resetPassword,
 } from '../controllers/authController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -26,6 +27,8 @@ router.post('/register', registerUser); // tested
 router.post('/login', loginUser); // tested
 
 router.post('/forgotPassword', forgotPassword); // tested
+
+router.patch('/resetPassword/:token', resetPassword); // tested
 
 router
   .route('/profile')
