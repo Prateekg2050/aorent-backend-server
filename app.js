@@ -42,7 +42,7 @@ app.get('/config/razorpay', (req, res) =>
 );
 
 app.get('/', (req, res) => {
-  res.send('Welcome to AORent server');
+  res.send(`Welcome to AORent ${process.env.NODE_ENV} server`);
 });
 
 // Not Found Handler
