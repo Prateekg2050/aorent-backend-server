@@ -11,18 +11,29 @@ import {
   underReviewUsers,
   commonData,
 } from '../controllers/userController.js';
-import { loginUser, registerUser } from '../controllers/authController.js';
+import {
+  loginUser,
+  registerUser,
+  forgotPassword,
+} from '../controllers/authController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 router.route('/').get(protect, admin, getUsers); // tested
+
 router.get('/commondata', protect, commonData); // tested
+
 router.post('/register', registerUser); // tested
 router.post('/login', loginUser); // tested
+
+router.post('/forgotPassword', forgotPassword); // tested
+
 router
   .route('/profile')
   .get(protect, getUserProfile) // tested
   .patch(protect, updateUserProfile); // tested
+
 router.route('/underReview').get(protect, admin, underReviewUsers); // tested
+
 router
   .route('/:id')
   .delete(protect, admin, deleteUser) // tested

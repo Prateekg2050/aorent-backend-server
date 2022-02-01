@@ -1,7 +1,8 @@
-const nodemailer = require('nodemailer');
+import nodemailer from 'nodemailer';
 
 const sendEmail = async (options) => {
   // 1) Create a transporter
+  // Later for gmail purposes
   //   const transporter = nodemailer.createTransport({
   //     service: 'Gmail',
   //     auth: {
@@ -24,7 +25,7 @@ const sendEmail = async (options) => {
 
   // 2) Define the email options
   const mailOptions = {
-    from: 'Ayush Garg <hello@ayush.io>',
+    from: 'AORent <resetpassword@aorent.com>',
     to: options.email,
     subject: options.subject,
     text: options.message,
@@ -33,9 +34,7 @@ const sendEmail = async (options) => {
 
   // 3) Actually send the email
 
-  // console.log(
   await transporter.sendMail(mailOptions);
-  // );
 };
 
 export default sendEmail;
