@@ -2,8 +2,6 @@ import express from 'express';
 const router = express.Router();
 
 import {
-  loginUser,
-  registerUser,
   getUserProfile,
   updateUserProfile,
   getUsers,
@@ -12,7 +10,8 @@ import {
   updateUser,
   underReviewUsers,
   commonData,
-} from '../controllers/userControllers.js';
+} from '../controllers/userController.js';
+import { loginUser, registerUser } from '../controllers/authController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 router.route('/').get(protect, admin, getUsers); // tested
