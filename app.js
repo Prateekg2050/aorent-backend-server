@@ -61,3 +61,11 @@ app.listen(
     `Server running in ${process.env.NODE_ENV} mode on ${PORT}`.yellow.bold
   )
 );
+
+process.on('unhandledRejection', (err) => {
+  console.error(err.name, err.message);
+  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  server.close(() => {
+    process.exit(1);
+  });
+});
