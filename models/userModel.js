@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: true,
+      required: [true, 'Please tell us your mobile number'],
       unique: true,
       trim: true,
     },
@@ -25,7 +25,12 @@ const userSchema = mongoose.Schema(
       lowercase: true,
       validate: [validator.isEmail, 'Please provide a valid email'],
     },
-    password: { type: String, required: true },
+    password: {
+      type: String,
+      required: [true, 'Please provide a password'],
+      minlength: 8,
+      select: false,
+    },
     passwordConfirm: {
       type: String,
       required: [true, 'Please confirm your password'],
@@ -52,18 +57,23 @@ const userSchema = mongoose.Schema(
       idImage: { type: String },
     },
 
+    // to add items by user
     listings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-
     currentlyRenting: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     ],
 
+    // for blacklisting a user
     flagged: { type: Boolean, required: true, default: false },
+
+    // for private routes access
     isAdmin: {
       type: Boolean,
       required: true,
       default: false,
     },
+
+    // for password handling
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
@@ -72,13 +82,12 @@ const userSchema = mongoose.Schema(
 );
 
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
-  }
+  // Only run this function if password is modified
+  if (!this.isModified('password')) return next();
 
-  // Hash the password with a cost of 10
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+  // Hash the password with a cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+
   // Delete the confirm password
   this.passwordConfirm = undefined;
   next();
@@ -91,8 +100,13 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
+  // this.password is not available because this refers to current document and current document does not have password as it is false
+
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 userSchema.methods.changedPasswordAfter = async function (JWTTimestamp) {

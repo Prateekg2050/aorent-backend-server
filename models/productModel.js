@@ -30,6 +30,11 @@ const productSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
+    currentlyRentedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+
+      ref: 'User',
+    },
     name: {
       type: String,
       required: true,

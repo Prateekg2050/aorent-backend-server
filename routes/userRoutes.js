@@ -16,31 +16,34 @@ import {
   registerUser,
   forgotPassword,
   resetPassword,
+  updatePassword,
 } from '../controllers/authController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
-router.route('/').get(protect, admin, getUsers); // tested
+router.route('/').get(protect, admin, getUsers);
 
-router.get('/commondata', protect, commonData); // tested
+router.get('/commondata', protect, commonData);
 
-router.post('/register', registerUser); // tested
-router.post('/login', loginUser); // tested
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 
-router.post('/forgotPassword', forgotPassword); // tested
+router.post('/forgotPassword', forgotPassword);
 
-router.patch('/resetPassword/:token', resetPassword); // tested
+router.patch('/updateMyPassword', protect, updatePassword);
+
+router.patch('/resetPassword/:token', resetPassword);
 
 router
   .route('/profile')
-  .get(protect, getUserProfile) // tested
-  .patch(protect, updateUserProfile); // tested
+  .get(protect, getUserProfile)
+  .patch(protect, updateUserProfile);
 
-router.route('/underReview').get(protect, admin, underReviewUsers); // tested
+router.route('/underReview').get(protect, admin, underReviewUsers);
 
 router
   .route('/:id')
-  .delete(protect, admin, deleteUser) // tested
-  .get(protect, admin, getUserById) // tested
-  .put(protect, admin, updateUser); // tested
+  .delete(protect, admin, deleteUser)
+  .get(protect, admin, getUserById)
+  .put(protect, admin, updateUser);
 
 export default router;

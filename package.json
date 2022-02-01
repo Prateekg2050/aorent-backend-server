@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon app.js",
+    "start": "SET NODE_ENV=production & nodemon app.js",
+    "dev": "nodemon app.js",
     "data:import": "node seeder",
     "data:destroy": "node seeder -d"
   },

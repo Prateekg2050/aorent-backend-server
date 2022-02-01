@@ -5,6 +5,18 @@ import AppError from '../utils/appError.js';
 import sendEmail from '../utils/email.js';
 import crypto from 'crypto';
 
+// helper function
+
+const createAndSendToken = (user, statusCode, res) => {
+  res.status(statusCode).json({
+    status: 'success',
+    token: generateToken(user._id),
+    data: {
+      user: user,
+    },
+  });
+};
+
 // @desc        Register new user
 // @route       POST /user/register
 // @access      Public
@@ -19,11 +31,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     avatar: req.body.avatar,
   });
 
-  res.status(201).json({
-    status: 'success',
-    user,
-    token: generateToken(user._id),
-  });
+  createAndSendToken(user, 201, res);
 });
 
 // @desc        Login user
@@ -39,17 +47,14 @@ const loginUser = asyncHandler(async (req, res, next) => {
   }
 
   // 2) check if user exists and password is correct
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+password');
 
-  if (!user && (await user.matchPassword(password))) {
+  if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
 
   // 3) if everything ok , send token to client
-  res.json({
-    user,
-    token: generateToken(user._id),
-  });
+  createAndSendToken(user, 200, res);
 });
 
 // @desc        Forgot password
@@ -131,4 +136,36 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   });
 });
 
-export { registerUser, loginUser, forgotPassword, resetPassword };
+const updatePassword = asyncHandler(async (req, res, next) => {
+  // 1) Get user from collection
+  const user = await User.findById(req.user._id).select('+password');
+
+  console.log(
+    await user.correctPassword(req.body.passwordCurrent, user.password)
+  );
+  // 2) check if POSTed current password is correctPassword
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new AppError('Your current password is wrong', 401));
+  }
+
+  // 3) If so, update password
+  if (!req.body.password || !req.body.passwordConfirm) {
+    return next(new AppError('Please enter new passwords', 400));
+  }
+
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
+
+  await user.save();
+
+  // $) Log in user, send JWT
+  createAndSendToken(user, 200, res);
+});
+
+export {
+  registerUser,
+  loginUser,
+  forgotPassword,
+  resetPassword,
+  updatePassword,
+};
