@@ -12,14 +12,12 @@ import morgan from 'morgan';
 import connectDb from './config/db.js';
 
 // middleware imports
-import { notFound } from './middleware/errorMiddleware.js';
 import gloabalErrorHandler from './controllers/errorController.js';
 
 // routes import
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
 
 dotenv.config();
 
@@ -37,22 +35,21 @@ app.use(express.json());
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
 app.use('/order', orderRoutes);
-app.use('/upload', uploadRoutes);
 
 app.get('/config/razorpay', (req, res) =>
   res.send(process.env.RAZORPAY_CLIENT_ID)
 );
 
-const __dirname = path.resolve();
-app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
-
 app.get('/', (req, res) => {
   res.send('Welcome to AORent server');
 });
 
-// Middleware
-app.use(notFound);
-// app.use(errorHandler);
+// Not Found Handler
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
+});
+
+// Gloabal Error Handler
 app.use(gloabalErrorHandler);
 
 //PORT
