@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import APIFeatures from '../utils/apiFeatures.js';
+import AppError from '../utils/appError.js';
 
 // @desc        Fetch all products
 // @route       GET /products
@@ -59,7 +60,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
   if (product) {
     await product.remove();
-    res.json({ message: 'Product Removed' });
+    res.status(204).json({ message: 'Product Removed' });
   } else {
     res.status(404);
     throw new Error('Product not found');
@@ -96,19 +97,37 @@ const createProduct = asyncHandler(async (req, res) => {
 // @desc        Update a product
 // @route       PUT /products/:id
 // @access      Private/Admin
-const updateProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+const updateProduct = asyncHandler(async (req, res, next) => {
+  let product = await Product.findById(req.params.id);
 
+  if (product.user.toHexString() !== req.user._id.toHexString()) {
+    return next(
+      new AppError('You are not authorized to update the product.', 404)
+    );
+  }
+
+  product = await Product.findByIdAndUpdate(
+    req.params.id,
+    {
+      name: req.body.name,
+      rent: req.body.rent,
+      brand: req.body.brand,
+      category: req.body.category,
+      description: req.body.description,
+      images: req.body.images,
+    },
+    {
+      new: true,
+    }
+  );
+  // console.log(product);
   if (product) {
-    // to rerun validators on saving
-    const updatedProduct = await product.save();
-    res.json(updatedProduct);
+    res.json({
+      status: 'success',
+      data: product,
+    });
   } else {
-    res.status(400);
-    throw new Error('Product not found');
+    return next(new AppError('Product not found.', 404));
   }
 });
 
