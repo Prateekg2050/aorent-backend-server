@@ -11,11 +11,13 @@ const getProducts = asyncHandler(async (req, res) => {
     .filter()
     .sort()
     .limitFields()
-    .paginate();
-  features.query = features.query.find({ isRented: { $ne: true } });
+    .paginate()
+    .keyword();
+  // features.query = features.query.find({ isRented: { $ne: true } });
   const products = await features.query;
 
   res.json({
+    results: products.length,
     products,
   });
 });
@@ -70,15 +72,19 @@ const deleteProduct = asyncHandler(async (req, res) => {
 const createProduct = asyncHandler(async (req, res) => {
   const product = await Product.create({
     user: req.user._id,
+    title: req.body.title,
     name: req.body.name,
     brand: req.body.brand,
     category: req.body.category,
     description: req.body.description,
+    images: req.body.images,
+    rent: req.body.rent,
   });
 
   if (product) {
     await product.save();
 
+    // add to user listings array
     const user = await User.findById(req.user._id);
     user.listings.unshift(product._id);
     await user.save();

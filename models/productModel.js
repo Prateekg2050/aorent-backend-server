@@ -32,26 +32,68 @@ const productSchema = mongoose.Schema(
     },
     currentlyRentedBy: {
       type: mongoose.Schema.Types.ObjectId,
-
       ref: 'User',
+    },
+    title: {
+      type: String,
+      required: [true, 'Please give a title'],
     },
     name: {
       type: String,
-      required: true,
+      required: [true, 'Please give a name'],
     },
-    image: [{ type: String }],
-    coverImage: String,
     brand: {
       type: String,
-      required: true,
+      required: [true, 'Please tell us the brand'],
     },
     category: {
       type: String,
-      required: true,
+      required: [true, 'Please tell us the category'],
+      lowercase: true,
+      enum: {
+        values: [
+          'electronics',
+          'furniture',
+          'clothing',
+          'properties',
+          'services',
+          'essentials',
+          'industrial supplies',
+          'sports',
+          'entertainment',
+          'luxury',
+          'agriculture',
+          'other',
+        ],
+        message: 'Categories can be selected only from the list',
+      },
     },
     description: {
       type: String,
-      required: true,
+      required: [true, 'Please enter the description'],
+    },
+    images: [{ type: String }],
+    rent: {
+      durationType: {
+        type: String,
+        required: true,
+        default: 'monthly',
+        enum: ['hourly', 'monthly'],
+      },
+      price: { type: Number, required: true, default: 0 },
+      securityAmount: { type: Number, required: true, default: 0 },
+      minimumDuration: { type: Number, required: true, default: 0 },
+      lateFees: { type: Number, required: true, default: 0 },
+    },
+    rentedDate: { type: Date },
+    returnDate: {
+      type: Date,
+      validate: {
+        validator: function (val) {
+          return returnDate > rentedDate;
+        },
+        message: 'Return date should be greater than rented on date',
+      },
     },
     reviews: [reviewSchema],
     averageRating: {
@@ -66,35 +108,13 @@ const productSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
-    underReview: { type: Boolean, default: true },
-    rent: {
-      time: {
-        type: Number,
-        default: 0,
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-        default: 0,
-      },
-    },
-    isRented: { type: Boolean, default: false },
-    rentedDate: { type: Date },
-    returnDate: {
-      type: Date,
-      validate: {
-        validator: function (val) {
-          return returnDate > rentedDate;
-        },
-        message: 'Return date should be greater than rented on date',
-      },
-    },
     sales: {
       users: { type: Number, default: 0 },
       revenue: { type: Number, default: 0 },
     },
     counter: { type: Number, default: 0 },
+    underReview: { type: Boolean, default: true },
+    isRented: { type: Boolean, default: false },
   },
   {
     timestamps: true,
@@ -106,6 +126,11 @@ const productSchema = mongoose.Schema(
     },
   }
 );
+
+productSchema.pre(/^find/, function (next) {
+  this.find({ isRented: { $ne: true } });
+  next();
+});
 
 const Product = mongoose.model('Product', productSchema);
 
