@@ -23,12 +23,12 @@ const createAndSendToken = (user, statusCode, res) => {
 
 const registerUser = asyncHandler(async (req, res, next) => {
   const user = await User.create({
-    name: req.body.name,
+    // name: req.body.name,
     email: req.body.email,
-    phoneNumber: req.body.phoneNumber,
+    // phoneNumber: req.body.phoneNumber,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
-    avatar: req.body.avatar,
+    // avatar: req.body.avatar,
   });
 
   createAndSendToken(user, 201, res);
