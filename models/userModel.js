@@ -7,7 +7,6 @@ const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
       trim: true,
       // required: [true, 'Please tell us your name'],
     },
