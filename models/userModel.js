@@ -15,6 +15,8 @@ const userSchema = mongoose.Schema(
       // required: [true, 'Please tell us your mobile number'],
       unique: true,
       trim: true,
+      minLength: 10,
+      maxLength: 10,
     },
     email: {
       type: String,
@@ -50,7 +52,7 @@ const userSchema = mongoose.Schema(
         enum: ['aadhar', 'voter', 'pan', 'passport', 'license'],
       },
       idNumber: { type: String },
-      idImage: { type: String },
+      idImage: [String],
     },
     underReview: {
       type: Boolean,

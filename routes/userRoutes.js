@@ -4,11 +4,6 @@ const router = express.Router();
 import {
   getUserProfile,
   updateUserProfile,
-  getUsers,
-  getUserById,
-  deleteUser,
-  updateUser,
-  underReviewUsers,
   commonData,
 } from '../controllers/userController.js';
 import {
@@ -18,32 +13,20 @@ import {
   resetPassword,
   updatePassword,
 } from '../controllers/authController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
-router.route('/').get(protect, admin, getUsers);
-
-router.get('/commondata', protect, commonData);
+/********************************************************************************************/
+/********************************************************************************************/
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
-
 router.post('/forgotPassword', forgotPassword);
-
-router.patch('/updateMyPassword', protect, updatePassword);
-
 router.patch('/resetPassword/:token', resetPassword);
 
-router
-  .route('/profile')
-  .get(protect, getUserProfile)
-  .patch(protect, updateUserProfile);
+router.use(protect);
 
-router.route('/underReview').get(protect, admin, underReviewUsers);
-
-router
-  .route('/:id')
-  .delete(protect, admin, deleteUser)
-  .get(protect, admin, getUserById)
-  .put(protect, admin, updateUser);
+router.patch('/updateMyPassword', updatePassword);
+router.get('/commondata', commonData);
+router.route('/profile').get(getUserProfile).patch(updateUserProfile);
 
 export default router;

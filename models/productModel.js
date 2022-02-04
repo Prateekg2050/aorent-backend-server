@@ -127,10 +127,10 @@ const productSchema = mongoose.Schema(
   }
 );
 
-productSchema.pre(/^find/, function (next) {
-  this.find({ isRented: { $ne: true } });
-  next();
-});
+// productSchema.pre(/^find/, function (next) {
+//   this.find({ isRented: { $ne: true } });
+//   next();
+// });
 
 const Product = mongoose.model('Product', productSchema);
 

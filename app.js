@@ -19,6 +19,7 @@ import AppError from './utils/appError.js';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use(cors());
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
 app.use('/order', orderRoutes);
+app.use('/admin', adminRoutes);
 
 app.get('/config/razorpay', (req, res) =>
   res.send(process.env.RAZORPAY_CLIENT_ID)
