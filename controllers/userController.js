@@ -6,9 +6,8 @@ import User from '../models/userModel.js';
 // @route       GET /users/profile
 // @access      Private
 
-const getUserProfile = asyncHandler(async (req, res) => {
+const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).select('-password');
-
   if (user) {
     res.json(user);
   } else {
@@ -37,22 +36,4 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc        Get all common data of user
-// @route       GET /users/commondata
-// @access      Private
-
-const commonData = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).populate([
-    'listings',
-    'currentlyRenting',
-  ]);
-
-  if (user) {
-    res.json({ user });
-  } else {
-    res.status(400);
-    throw new Error('No such user found');
-  }
-});
-
-export { getUserProfile, updateUserProfile, commonData };
+export { getMe, updateUserProfile };

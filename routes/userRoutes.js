@@ -1,11 +1,7 @@
 import express from 'express';
 const router = express.Router();
 
-import {
-  getUserProfile,
-  updateUserProfile,
-  commonData,
-} from '../controllers/userController.js';
+import { getMe, updateUserProfile } from '../controllers/userController.js';
 import {
   loginUser,
   registerUser,
@@ -26,7 +22,8 @@ router.patch('/resetPassword/:token', resetPassword);
 router.use(protect);
 
 router.patch('/updateMyPassword', updatePassword);
-router.get('/commondata', commonData);
-router.route('/profile').get(getUserProfile).patch(updateUserProfile);
+
+//Do not use to update password
+router.route('/me').get(getMe).patch(updateUserProfile);
 
 export default router;

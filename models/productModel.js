@@ -1,28 +1,5 @@
 import mongoose from 'mongoose';
 
-const reviewSchema = mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-    },
-    rating: {
-      type: Number,
-      required: true,
-    },
-    comment: {
-      type: String,
-      required: true,
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: 'User',
-    },
-  },
-  { timestamps: true }
-);
-
 const productSchema = mongoose.Schema(
   {
     user: {
@@ -95,7 +72,6 @@ const productSchema = mongoose.Schema(
         message: 'Return date should be greater than rented on date',
       },
     },
-    reviews: [reviewSchema],
     averageRating: {
       type: Number,
       required: true,
@@ -126,6 +102,8 @@ const productSchema = mongoose.Schema(
     },
   }
 );
+
+//TODO: Add reviews using virtual populate
 
 // productSchema.pre(/^find/, function (next) {
 //   this.find({ isRented: { $ne: true } });
