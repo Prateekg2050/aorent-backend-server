@@ -45,6 +45,7 @@ const userSchema = mongoose.Schema(
     },
     avatar: { type: String },
 
+    // verification
     kycDetails: {
       name: { type: String },
       idType: {
@@ -56,10 +57,11 @@ const userSchema = mongoose.Schema(
     },
     underReview: {
       type: Boolean,
-      default: true,
     },
+
     // to add items by user
     listings: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+
     currentlyRenting: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     ],

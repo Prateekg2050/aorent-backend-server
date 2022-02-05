@@ -1,7 +1,11 @@
 import express from 'express';
 const router = express.Router();
 
-import { getMe, updateUserProfile } from '../controllers/userController.js';
+import {
+  getMe,
+  updateUserProfile,
+  kycVerify,
+} from '../controllers/userController.js';
 import {
   loginUser,
   registerUser,
@@ -25,5 +29,6 @@ router.patch('/updateMyPassword', updatePassword);
 
 //Do not use to update password
 router.route('/me').get(getMe).patch(updateUserProfile);
+router.route('/:id/kycVerify').patch(kycVerify);
 
 export default router;
