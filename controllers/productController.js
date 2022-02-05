@@ -3,38 +3,18 @@ import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import APIFeatures from '../utils/apiFeatures.js';
 import AppError from '../utils/appError.js';
+import { getAll } from './handlerFactory.js';
 
 // @desc        Fetch all products
 // @route       GET /products
 // @access      Public
-const getProducts = asyncHandler(async (req, res) => {
-  const features = new APIFeatures(Product.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate()
-    .keyword();
-  // features.query = features.query.find({ isRented: { $ne: true } });
-  const products = await features.query;
-
-  res.json({
-    results: products.length,
-    products,
-  });
-});
+const getProducts = getAll(Product);
 
 // @desc        Fetch single product by ID
 // @route       GET /products/:id
 // @access      Public
 const getProductById = asyncHandler(async (req, res) => {
-  let product = Product.findByIdAndUpdate(
-    req.params.id,
-    {},
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
+  let product = Product.findById(req.params.id);
 
   product = await Product.findByIdAndUpdate(
     { _id: req.params.id },
@@ -71,6 +51,11 @@ const deleteProduct = asyncHandler(async (req, res) => {
 // @route       POST /products
 // @access      Private
 const createProduct = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (user.isVerified) {
+    next(new AppError('You are not KYC verified', 404));
+  }
+
   const product = await Product.create({
     user: req.user._id,
     title: req.body.title,
@@ -86,11 +71,14 @@ const createProduct = asyncHandler(async (req, res) => {
     await product.save();
 
     // add to user listings array
-    const user = await User.findById(req.user._id);
+
     user.listings.unshift(product._id);
     await user.save();
 
-    res.status(201).json({ product });
+    res.status(201).json({
+      status: 'success',
+      data: product,
+    });
   }
 });
 
@@ -136,7 +124,11 @@ const updateProduct = asyncHandler(async (req, res, next) => {
 // @access      Public
 const getTopProducts = asyncHandler(async (req, res) => {
   const products = await Product.find({}).sort({ counter: -1 }).limit(5);
-  res.json(products);
+  res.status(200).json({
+    status: 'success',
+    results: products.length,
+    data: products,
+  });
 });
 
 export {

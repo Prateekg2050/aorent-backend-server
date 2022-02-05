@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      // required: [true, 'Please tell us your mobile number'],
+      required: [true, 'Please tell us your phone number'],
       unique: true,
       trim: true,
       minLength: 10,

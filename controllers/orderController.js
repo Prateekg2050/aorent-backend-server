@@ -5,9 +5,9 @@ import User from '../models/userModel.js';
 // @desc    Create new order
 // @route   POST /orders
 // @access  Private
-const addOrderItems = asyncHandler(async (req, res) => {
+const createOrder = asyncHandler(async (req, res) => {
   const {
-    orderItems,
+    item,
     shippingAddress,
     paymentMethod,
     itemsPrice,
@@ -16,12 +16,12 @@ const addOrderItems = asyncHandler(async (req, res) => {
     totalPrice,
   } = req.body;
 
-  if (orderItems && orderItems.length === 0) {
+  if (!item) {
     res.status(400);
     throw new Error('No order items');
   } else {
     const order = new Order({
-      orderItems,
+      item,
       user: req.user._id,
       shippingAddress,
       paymentMethod,
@@ -32,7 +32,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     });
 
     const user = await User.findById(req.user._id);
-    user.currentlyRenting.unshift(...orderItems);
+    user.currentlyRenting.unshift(item._id);
     await user.save();
 
     const createdOrder = await order.save();
@@ -124,7 +124,7 @@ const getOrders = asyncHandler(async (req, res) => {
 });
 
 export {
-  addOrderItems,
+  createOrder,
   getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
