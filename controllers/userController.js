@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import generateToken from '../utils/generateToken.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
+import { updateOne } from './handlerFactory.js';
 
 // @desc        Get user profile
 // @route       GET /users/profile
@@ -22,21 +23,7 @@ const getMe = asyncHandler(async (req, res) => {
 // @desc        Update user profile
 // @route       PUT /users/profile
 // @access      Private
-const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndUpdate(req.user._id, req.body, {
-    new: true,
-  });
-
-  if (user) {
-    res.status(201).json({
-      status: 'success',
-      data: { user, token: generateToken(user._id) },
-    });
-  } else {
-    res.status(404);
-    throw new Error('User not found');
-  }
-});
+const updateUserProfile = updateOne(User);
 
 // @desc        Start user verification
 // @route       PATCH /users/:id/kycVerify

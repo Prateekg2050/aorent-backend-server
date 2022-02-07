@@ -43,6 +43,12 @@ const userSchema = mongoose.Schema(
         message: 'Passwords are not same',
       },
     },
+    shippingAddress: {
+      address: { type: String },
+      city: { type: String },
+      state: { type: String },
+      pinCode: { type: Number },
+    },
     avatar: { type: String },
 
     // verification
