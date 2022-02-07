@@ -3,6 +3,12 @@ import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
 import { getAll, getOne, updateOne } from './handlerFactory.js';
 
+// util functions
+const approveUser = asyncHandler((req, res, next) => {
+  req.body = { underReview: false };
+  next();
+});
+
 // @desc        Get all users
 // @route       GET /admin/allUsers
 // @access      Private/Admin
@@ -75,6 +81,9 @@ const approveProduct = asyncHandler(async (req, res) => {
 });
 
 export {
+  // utils
+  approveUser,
+  // user functions
   getUsers,
   underReviewUsers,
   flagUser,

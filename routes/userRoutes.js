@@ -5,6 +5,7 @@ import {
   getMe,
   updateUserProfile,
   kycVerify,
+  deleteMe,
 } from '../controllers/userController.js';
 import {
   loginUser,
@@ -28,7 +29,7 @@ router.use(protect);
 router.patch('/updateMyPassword', updatePassword);
 
 //Do not use to update password
-router.route('/me').get(getMe).patch(updateUserProfile);
+router.route('/me').get(getMe).patch(updateUserProfile).delete(deleteMe);
 router.route('/:id/kycVerify').patch(kycVerify);
 
 export default router;

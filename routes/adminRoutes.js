@@ -1,11 +1,17 @@
 import express from 'express';
 const router = express.Router();
+
 import {
+  // utils
+  approveUser,
+
+  // user
   getUsers,
   underReviewUsers,
   flagUser,
   getUserById,
   updateUser,
+
   // product routes
   getProducts,
   underReviewProducts,
@@ -13,15 +19,23 @@ import {
   approveProduct,
 } from '../controllers/adminController.js';
 
+// auth middleware
 import { protect, admin } from '../middleware/authMiddleware.js';
 
+// middleware
 router.use(protect);
 router.use(admin);
 
+// routes
 router.route('/allUsers').get(getUsers);
 router.route('/user/underReview').get(underReviewUsers);
 
-router.route('/user/:id').delete(flagUser).get(getUserById).patch(updateUser);
+router
+  .route('/user/:id')
+  .delete(flagUser)
+  .get(getUserById)
+  // to approve kyc verification
+  .patch(approveUser, updateUser);
 
 // product routes
 router.route('/allProducts').get(getProducts);

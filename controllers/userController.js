@@ -25,6 +25,14 @@ const getMe = asyncHandler(async (req, res) => {
 // @access      Private
 const updateUserProfile = updateOne(User);
 
+// @desc        Delete me
+// @route       PUT /users/profile
+// @access      Private
+const deleteMe = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user._id, { active: false });
+  res.status(204).json({ status: 'success', message: 'User deleted' });
+});
+
 // @desc        Start user verification
 // @route       PATCH /users/:id/kycVerify
 // @access      Private
@@ -64,4 +72,4 @@ const kycVerify = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { getMe, updateUserProfile, kycVerify };
+export { getMe, updateUserProfile, kycVerify, deleteMe };

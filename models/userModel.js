@@ -86,6 +86,9 @@ const userSchema = mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+
+    // active
+    active: { type: Boolean, default: true, required: true },
   },
   { timestamps: true }
 );
@@ -146,6 +149,12 @@ userSchema.methods.createPasswordResetToken = async function () {
 
   return resetToken; // to send token into email and encrypted version to database and so becomes useless to change password and hence secured
 };
+
+userSchema.pre(/^find/, function (next) {
+  // points to the current query
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 
