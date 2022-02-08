@@ -130,7 +130,7 @@ const updateProduct = asyncHandler(async (req, res, next) => {
 
 // @desc        Delete a product
 // @route       DELETE /products/:id
-// @access      Private/Admin
+// @access      Private
 const deleteProduct = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
