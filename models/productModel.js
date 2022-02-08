@@ -129,11 +129,6 @@ const productSchema = mongoose.Schema(
 
 //TODO: Add reviews using virtual populate
 
-// productSchema.pre(/^find/, function (next) {
-//   this.find({ isRented: { $ne: true } });
-//   next();
-// });
-
 const Product = mongoose.model('Product', productSchema);
 
 export default Product;

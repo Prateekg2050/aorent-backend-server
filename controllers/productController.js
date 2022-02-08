@@ -65,7 +65,6 @@ const getProducts = asyncHandler(async (req, res, next) => {
     data: { doc },
   });
 });
-
 // @desc        Fetch single product by ID
 // @route       GET /products/:id
 // @access      Public
@@ -162,7 +161,9 @@ const deleteProduct = asyncHandler(async (req, res, next) => {
 // @route       GET /products/top
 // @access      Public
 const getTopProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find().sort({ counter: -1 }).limit(5);
+  const products = await Product.find({ underReview: false })
+    .sort({ counter: -1 })
+    .limit(5);
   res.status(200).json({
     status: 'success',
     results: products.length,

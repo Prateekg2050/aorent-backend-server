@@ -11,9 +11,10 @@ import {
 import { createProductReview } from '../controllers/reviewController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
-router.route('/').get(getProducts).post(protect, createProduct);
+/********************************************************************************************/
+/********************************************************************************************/
 
-// router.route('/:id/reviews').post(protect, createProductReview);
+router.route('/').get(getProducts).post(protect, createProduct);
 
 router.get('/top', getTopProducts);
 
@@ -24,3 +25,5 @@ router
   .put(protect, updateProduct);
 
 export default router;
+
+// router.route('/:id/reviews').post(protect, createProductReview);

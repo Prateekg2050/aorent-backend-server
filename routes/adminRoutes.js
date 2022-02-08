@@ -26,7 +26,7 @@ import { protect, admin } from '../middleware/authMiddleware.js';
 router.use(protect);
 router.use(admin);
 
-// routes
+// user routes
 router.route('/allUsers').get(getUsers);
 router.route('/user/underReview').get(underReviewUsers);
 
@@ -38,6 +38,7 @@ router
   .patch(approveUser, updateUser);
 
 // product routes
+
 router.route('/allProducts').get(getProducts);
 router.route('/product/underReview').get(underReviewProducts);
 router.route('/product/:id').get(getProductById);
