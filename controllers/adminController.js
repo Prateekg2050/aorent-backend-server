@@ -1,12 +1,15 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
+import Order from '../models/orderModel.js';
 import AppError from '../utils/appError.js';
 import APIFeatures from '../utils/apiFeatures.js';
-import { getAll, getOne } from './handlerFactory.js';
+
+/********************************************************************************************/
+/*****************************************User Routes****************************************/
 
 // @desc        Get all users
-// @route       GET /admin/allUsers
+// @route       GET /admin/user/all
 // @access      Private/Admin
 const getUsers = asyncHandler(async (req, res, next) => {
   const features = new APIFeatures(User.find(), req.query)
@@ -41,6 +44,25 @@ const getUserById = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc        Get users under review
+// @route       GET /admin/users/underReview
+// @access      Private/Admin
+const underReviewUsers = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(User.find({ underReview: true }), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const doc = await features.query;
+
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: { doc },
+  });
+});
+
 // @desc        Update user
 // @route       PATCH /admin/user/:id
 // @access      Private/Admin
@@ -63,11 +85,6 @@ const approveUser = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc        Get users under review
-// @route       GET /admin/users/underReview
-// @access      Private/Admin
-const underReviewUsers = getAll(User, { underReview: true });
-
 // @desc        Flag a user for some reason
 // @route       DELETE /admin/users/:id
 // @access      Private/Admin
@@ -85,20 +102,69 @@ const flagUser = asyncHandler(async (req, res) => {
   }
 });
 
+/********************************************************************************************/
+/*****************************************Product Routes*************************************/
+
 // @desc        Get all products
-// @route       GET /admin/allProducts
+// @route       GET /admin/product/all
 // @access      Private/Admin
-const getProducts = getAll(Product);
+const getProducts = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(Product.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const doc = await features.query;
+
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: { doc },
+  });
+});
 
 // @desc        Get products under review
 // @route       GET /admin/products/underReview
 // @access      Private/Admin
-const underReviewProducts = getAll(Product, { underReview: true });
+const underReviewProducts = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(
+    Product.find({ underReview: true }),
+    req.query
+  )
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  // hack for get under review users
+  if (filterOptions) features.query.find(filterOptions);
+
+  const doc = await features.query;
+
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: { doc },
+  });
+});
 
 // @desc        Get product by ID
 // @route       GET /admin/product/:id
 // @access      Private/Admin
-const getProductById = getOne(Product, { path: 'user currentlyRentedBy' });
+const getProductById = asyncHandler(async (req, res, next) => {
+  let doc = await Product.findById(req.params.id).populate('user');
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      doc,
+    },
+  });
+});
 
 // @desc        Review the product and approve it
 // @route       GET /admin/product/:id/approve
@@ -119,6 +185,42 @@ const approveProduct = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc        Get all orders
+// @route       GET /admin/order/all
+// @access      Private/Admin
+const getOrders = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(Order.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const doc = await features.query;
+
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: { doc },
+  });
+});
+
+// @desc        Get order by ID
+// @route       GET /admin/order/:id
+// @access      Private/Admin
+const getOrderById = asyncHandler(async (req, res, next) => {
+  let doc = await Order.findById(req.params.id);
+
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      doc,
+    },
+  });
+});
+
 export {
   // user functions
   getUsers,
@@ -132,4 +234,6 @@ export {
   getProductById,
   approveProduct,
   // order functions
+  getOrders,
+  getOrderById,
 };
