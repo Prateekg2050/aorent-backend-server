@@ -73,7 +73,7 @@ const createProduct = asyncHandler(async (req, res) => {
     // add to user listings array
 
     user.listings.unshift(product._id);
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     res.status(201).json({
       status: 'success',
