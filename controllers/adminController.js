@@ -1,28 +1,67 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import Product from '../models/productModel.js';
-import { getAll, getOne, updateOne } from './handlerFactory.js';
-
-// util functions
-const approveUser = asyncHandler((req, res, next) => {
-  req.body = { underReview: false };
-  next();
-});
+import AppError from '../utils/appError.js';
+import APIFeatures from '../utils/apiFeatures.js';
+import { getAll, getOne } from './handlerFactory.js';
 
 // @desc        Get all users
 // @route       GET /admin/allUsers
 // @access      Private/Admin
-const getUsers = getAll(User);
+const getUsers = asyncHandler(async (req, res, next) => {
+  const features = new APIFeatures(User.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const doc = await features.query;
+
+  res.status(200).json({
+    status: 'success',
+    results: doc.length,
+    data: { doc },
+  });
+});
 
 // @desc        Get user by ID
 // @route       GET /admin/user/:id
 // @access      Private/Admin
-const getUserById = getOne(User, { path: 'currentlyRenting listings' });
+const getUserById = asyncHandler(async (req, res, next) => {
+  let doc = await User.findById(req.params.id);
+
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    data: {
+      doc,
+    },
+  });
+});
 
 // @desc        Update user
 // @route       PATCH /admin/user/:id
 // @access      Private/Admin
-const updateUser = updateOne(User);
+const approveUser = asyncHandler(async (req, res, next) => {
+  const doc = await User.findByIdAndUpdate(
+    req.params.id,
+    { underReview: false },
+    { new: true }
+  );
+
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      doc,
+    },
+  });
+});
 
 // @desc        Get users under review
 // @route       GET /admin/users/underReview
@@ -81,17 +120,16 @@ const approveProduct = asyncHandler(async (req, res) => {
 });
 
 export {
-  // utils
-  approveUser,
   // user functions
   getUsers,
   underReviewUsers,
   flagUser,
-  updateUser,
+  approveUser,
   getUserById,
-  // products controlers
+  // products functions
   getProducts,
   underReviewProducts,
   getProductById,
   approveProduct,
+  // order functions
 };
