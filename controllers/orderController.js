@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import Order from '../models/orderModel.js';
 import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
+import AppError from '../utils/appError.js';
 
 // @desc    Create new order
 // @route   POST /orders
@@ -19,12 +20,11 @@ const createOrder = asyncHandler(async (req, res) => {
   } = req.body;
 
   if (!item) {
-    res.status(400);
-    throw new Error('No order item');
+    return next(new AppError('There was some error creating producct', 500));
   } else {
     const order = new Order({
-      item,
       user: req.user._id,
+      item,
       shippingAddress,
       paymentMethod,
       itemsPrice,
@@ -33,9 +33,9 @@ const createOrder = asyncHandler(async (req, res) => {
       totalPrice,
     });
 
-    const user = await User.findById(req.user._id);
-    user.currentlyRenting.unshift(item._id);
-    await user.save();
+    // const user = await User.findById(req.user._id);
+    // user.currentlyRenting.unshift(item._id);
+    // await user.save({ validateBeforeSave: false });
 
     const createdOrder = await order.save();
     res.status(201).json({ status: 'success', data: createdOrder });
@@ -54,8 +54,7 @@ const getOrderById = asyncHandler(async (req, res) => {
   if (order) {
     res.json({ status: 'success', data: order });
   } else {
-    res.status(404);
-    throw new Error('Order not found');
+    next(new AppError('Order not found', 404));
   }
 });
 
@@ -63,18 +62,21 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @route   PUT /orders/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
+  // 1) get the order
   const order = await Order.findById(req.params.id).populate(
     'user item',
     'name email'
   );
 
   if (order) {
+    // 2) Set rented fields in product
     const product = await Product.findByIdAndUpdate(order.item, {
       isRented: true,
       currentlyRentedBy: req.user._id,
       rentedDate: Date.now(),
       returnDate: Date.now() + 60 * 1000 * 24 * 30,
     });
+
     const durationType = product.rent.durationType;
     let minDuration = 1;
     let returnDate = Date.now();
@@ -82,9 +84,9 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
     if (durationType === 'monthly') {
     }
 
-    // product update
+    // user currently renting push
 
-    // order update
+    // 3)  order update
     order.isPaid = true;
     order.paidAt = Date.now();
     order.paymentResult = {
@@ -104,7 +106,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 
 // @desc    Update order to Delivered
 // @route   PUT /orders/:id/deliver
-// @access  Private/Admin
+// @access  Private
 const updateOrderToDelivered = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate(
     'user',
@@ -132,20 +134,10 @@ const getMyOrders = asyncHandler(async (req, res) => {
   res.json(orders);
 });
 
-// @desc    Get all orders
-// @route   GET /orders
-// @access  Private/Admin
-const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({}).populate('user', 'id name');
-
-  res.json(orders);
-});
-
 export {
   createOrder,
   getOrderById,
   updateOrderToPaid,
   updateOrderToDelivered,
   getMyOrders,
-  getOrders,
 };
