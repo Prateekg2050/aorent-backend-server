@@ -1,5 +1,7 @@
 import asyncHandler from 'express-async-handler';
+import dayjs from 'dayjs';
 import Order from '../models/orderModel.js';
+import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 
 // @desc    Create new order
@@ -18,7 +20,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
   if (!item) {
     res.status(400);
-    throw new Error('No order items');
+    throw new Error('No order item');
   } else {
     const order = new Order({
       item,
@@ -62,11 +64,27 @@ const getOrderById = asyncHandler(async (req, res) => {
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate(
-    'user',
+    'user item',
     'name email'
   );
 
   if (order) {
+    const product = await Product.findByIdAndUpdate(order.item, {
+      isRented: true,
+      currentlyRentedBy: req.user._id,
+      rentedDate: Date.now(),
+      returnDate: Date.now() + 60 * 1000 * 24 * 30,
+    });
+    const durationType = product.rent.durationType;
+    let minDuration = 1;
+    let returnDate = Date.now();
+
+    if (durationType === 'monthly') {
+    }
+
+    // product update
+
+    // order update
     order.isPaid = true;
     order.paidAt = Date.now();
     order.paymentResult = {

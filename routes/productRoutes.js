@@ -11,16 +11,16 @@ import {
 import { createProductReview } from '../controllers/reviewController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
-router.route('/').get(getProducts).post(protect, createProduct); // tested
+router.route('/').get(getProducts).post(protect, createProduct);
 
-router.route('/:id/reviews').post(protect, createProductReview); // tested
+router.route('/:id/reviews').post(protect, createProductReview);
 
-router.get('/top', getTopProducts); // tested
+router.get('/top', getTopProducts);
 
 router
   .route('/:id')
-  .get(getProductById) // tested
-  .delete(protect, admin, deleteProduct) // tested
-  .put(protect, updateProduct); // tested
+  .get(getProductById)
+  .delete(protect, admin, deleteProduct)
+  .put(protect, updateProduct);
 
 export default router;

@@ -63,6 +63,8 @@ const orderSchema = mongoose.Schema(
   }
 );
 
+orderSchema.index({ user: 1, item: 1 });
+
 const Order = mongoose.model('Order', orderSchema);
 
 export default Order;

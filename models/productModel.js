@@ -7,10 +7,6 @@ const productSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
-    currentlyRentedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
     title: {
       type: String,
       required: [true, 'Please give a title'],
@@ -57,11 +53,13 @@ const productSchema = mongoose.Schema(
         default: 'monthly',
         enum: ['hourly', 'monthly'],
       },
+      minimumDuration: { type: Number, required: true, default: 0 },
       price: { type: Number, required: true, default: 0 },
       securityAmount: { type: Number, required: true, default: 0 },
-      minimumDuration: { type: Number, required: true, default: 0 },
       lateFees: { type: Number, required: true, default: 0 },
     },
+
+    // rentee details
     rentedDate: { type: Date },
     returnDate: {
       type: Date,
@@ -72,6 +70,13 @@ const productSchema = mongoose.Schema(
         message: 'Return date should be greater than rented on date',
       },
     },
+    currentlyRentedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    isRented: { type: Boolean, default: false },
+
+    // rating and reviews
     averageRating: {
       type: Number,
       required: true,
@@ -84,13 +89,32 @@ const productSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
+
+    // sales management
     sales: {
       users: { type: Number, default: 0 },
       revenue: { type: Number, default: 0 },
     },
+
+    // no of views
     counter: { type: Number, default: 0 },
+
+    // location reference
+    location: {
+      //GeoJSON
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      // longitude , latitude
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+
+    // approve product boolean
     underReview: { type: Boolean, default: true },
-    isRented: { type: Boolean, default: false },
   },
   {
     timestamps: true,
