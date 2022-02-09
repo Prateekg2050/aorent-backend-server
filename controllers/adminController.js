@@ -137,9 +137,6 @@ const underReviewProducts = asyncHandler(async (req, res, next) => {
     .limitFields()
     .paginate();
 
-  // hack for get under review users
-  if (filterOptions) features.query.find(filterOptions);
-
   const doc = await features.query;
 
   res.status(200).json({
