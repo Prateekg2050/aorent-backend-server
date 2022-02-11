@@ -8,38 +8,94 @@ import AppError from '../utils/appError.js';
 // @desc    Create new order
 // @route   POST /orders
 // @access  Private
-const createOrder = asyncHandler(async (req, res) => {
-  const {
+const createOrder = asyncHandler(async (req, res, next) => {
+  // Check if user is kyc verified
+
+  let {
     item,
+    startDate,
+    duration,
     shippingAddress,
     paymentMethod,
-    itemsPrice,
-    taxPrice,
-    shippingPrice,
-    totalPrice,
+    serviceCharge,
   } = req.body;
 
-  if (!item) {
-    return next(new AppError('There was some error creating producct', 500));
-  } else {
-    const order = new Order({
-      user: req.user._id,
-      item,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-    });
-
-    // const user = await User.findById(req.user._id);
-    // user.currentlyRenting.unshift(item._id);
-    // await user.save({ validateBeforeSave: false });
-
-    const createdOrder = await order.save();
-    res.status(201).json({ status: 'success', data: createdOrder });
+  // Check if date is right or not
+  startDate = Date(startDate);
+  if (startDate < Date.now()) {
+    return next(new AppError('Please select future date', 400));
   }
+
+  // Check if req.body.item exist or not
+  if (!item) {
+    return next(new AppError('Please select some product', 400));
+  }
+
+  // Get product
+  const product = await Product.findById(item);
+
+  // Check for flags
+
+  // 1) Product might not exist
+  if (!product) {
+  }
+
+  // 2) If the product is still under review
+  if (product.underReview) {
+    return next(
+      new AppError(
+        'This product is still under review. Please try after sometime',
+        401
+      )
+    );
+  }
+
+  // 3)Check if product is already rented out
+  if (product.isRented) {
+    return next(
+      new AppError(
+        'This item is already rented out. Please come after some time',
+        400
+      )
+    );
+  }
+
+  const rent = product.rent;
+  let returnDate = startDate;
+
+  console.log(rent.durationType);
+  // use dayjs here
+
+  if (rent.durationType === 'monthly') {
+    console.log('monthly');
+    returnDate = new Date(returnDate + duration * 1000 * 60 * 24 * 30);
+  }
+
+  if (rent.durationType === 'hourly') {
+    console.log('hourly');
+    returnDate = new Date(returnDate + duration * 1000 * 60);
+  }
+
+  console.log(returnDate);
+
+  // Calculate price according to rent and duration
+
+  // const order = new Order({
+  //   user: req.user._id,
+  //   item,
+  //   shippingAddress,
+  //   paymentMethod,
+  //   serviceCharge,
+  //   totalPrice,
+  // });
+
+  // const createdOrder = await order.save();
+  res.status(201).json({
+    status: 'success',
+    data: {
+      // createdOrder
+    },
+  });
 });
 
 // @desc    Get an order by id
@@ -70,12 +126,12 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 
   if (order) {
     // 2) Set rented fields in product
-    const product = await Product.findByIdAndUpdate(order.item, {
-      isRented: true,
-      currentlyRentedBy: req.user._id,
-      rentedDate: Date.now(),
-      returnDate: Date.now() + 60 * 1000 * 24 * 30,
-    });
+    const product = await Product.findById(order.item);
+
+    product.isRented = true;
+    product.currentlyRentedBy = req.user._id;
+    product.rentedDate = req.body.rentedDate;
+    product.returnDate = req.body.rentedDate + 60 * 1000 * 24 * 30;
 
     const durationType = product.rent.durationType;
     let minDuration = 1;
@@ -131,7 +187,7 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
 const getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ user: req.user._id });
 
-  res.json(orders);
+  res.status(200).json({ status: 'success', data: orders });
 });
 
 export {

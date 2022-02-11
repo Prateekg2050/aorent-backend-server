@@ -72,6 +72,11 @@ const userSchema = mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     ],
 
+    // membership variables
+    isPremium: { type: Boolean, default: false },
+    premiumPurchasedAt: Date,
+    premiumExpiresAt: Date,
+
     // for blacklisting a user
     flagged: { type: Boolean, required: true, default: false },
 

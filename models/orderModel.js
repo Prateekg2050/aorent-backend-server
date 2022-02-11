@@ -28,12 +28,17 @@ const orderSchema = mongoose.Schema(
       update_time: { type: String },
       email_address: { type: String },
     },
-    taxPrice: {
+    subTotal: {
       type: Number,
       required: true,
       default: 0.0,
     },
-    shippingPrice: {
+    serviceCharge: {
+      type: Number,
+      required: true,
+      default: 0.0,
+    },
+    depositCharged: {
       type: Number,
       required: true,
       default: 0.0,
@@ -43,20 +48,25 @@ const orderSchema = mongoose.Schema(
       required: true,
       default: 0.0,
     },
+
+    // renting vars
+    startDate: Date,
+
+    // payment vars
     isPaid: {
       type: Boolean,
       required: true,
       default: false,
     },
     paidAt: { type: Date },
-    isDelivered: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    deliveredAt: { type: Date },
-    returnDate: { type: Date },
-    returnDelivered: { type: Boolean },
+
+    // delivery vars
+    isDelivered: Boolean,
+    deliveredAt: Date,
+
+    // return vars
+    returnDate: Date,
+    returnDelivered: Boolean,
   },
   {
     timestamps: true,
