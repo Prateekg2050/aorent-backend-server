@@ -19,14 +19,12 @@ class APIFeatures {
     this.query = this.query.find(JSON.parse(queryStr));
 
     return this;
-    // let query = Tour.find(JSON.parse(queryStr));
   }
 
   sort() {
     if (this.queryString.sort) {
       const sortBy = this.queryString.sort.split(',').join(' ');
       this.query = this.query.sort(sortBy);
-      // sort('price ratingAverage')
     } else {
       this.query = this.query.sort('-createdAt');
     }

@@ -100,7 +100,7 @@ app.use(gloabalErrorHandler);
 
 //PORT
 const PORT = process.env.PORT || 5000;
-app.listen(
+const server = app.listen(
   PORT,
   console.log(
     `Server running in`.yellow,

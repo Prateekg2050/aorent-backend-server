@@ -135,10 +135,12 @@ const underReviewProducts = asyncHandler(async (req, res, next) => {
     .filter()
     .sort()
     .limitFields()
-    .paginate();
+    .paginate()
+    .keyword();
 
   const doc = await features.query;
-
+  const count = await Product.countDocuments({ underReview: true });
+  console.log(count);
   res.status(200).json({
     status: 'success',
     results: doc.length,
