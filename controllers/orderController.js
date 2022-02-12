@@ -10,20 +10,15 @@ import AppError from '../utils/appError.js';
 // @access  Private
 const createOrder = asyncHandler(async (req, res, next) => {
   // Check if user is kyc verified
-  if (!req.user.isVerified) {
+  const user = await User.findById(req.user._id);
+  if (!user.isVerified) {
     return next(new AppError('Please get KYC verfied. Try again later', 401));
   }
 
-  let {
-    item,
-    startDate,
-    duration,
-    shippingAddress,
-    paymentMethod,
-    serviceCharge,
-  } = req.body;
+  // extract variables
+  let { item, startDate, duration, shippingAddress, paymentMethod } = req.body;
 
-  // Check if date is right or not
+  // Check if date is in future or not
   startDate = Date(startDate);
   if (startDate < Date.now()) {
     return next(new AppError('Please select future date', 400));
@@ -38,9 +33,9 @@ const createOrder = asyncHandler(async (req, res, next) => {
   const product = await Product.findById(item);
 
   // Check for flags
-
   // 1) Product might not exist
   if (!product) {
+    return next(new AppError('This product does not exists', 404));
   }
 
   // 2) If the product is still under review
@@ -48,12 +43,17 @@ const createOrder = asyncHandler(async (req, res, next) => {
     return next(
       new AppError(
         'This product is still under review. Please try after sometime',
-        401
+        400
       )
     );
   }
 
-  // 3)Check if product is already rented out
+  // 3) If the product is verified
+  if (!product.isVerified) {
+    return next(new AppError('This product is rejected', 400));
+  }
+
+  // 4)Check if product is already rented out
   if (product.isRented) {
     return next(
       new AppError(
@@ -63,37 +63,79 @@ const createOrder = asyncHandler(async (req, res, next) => {
     );
   }
 
+  // Rent manipultion
   const rent = product.rent;
-  let returnDate = dayjs(startDate).valueOf();
+  let serviceCharge = req.body.serviceCharge || 0;
+  let returnDate, subTotal, deposit, totalPrice;
 
+  // check if min. duration is more than given duration
+  if (rent.minimumDuration > duration) {
+    return next(
+      new AppError('Duration provided is less than minimum duration', 400)
+    );
+  }
+
+  // get return date according to monthly or hourly
   if (rent.durationType === 'monthly') {
     console.log('monthly');
-    returnDate = dayjs(returnDate + duration * 30 * 86400 * 1000).format();
+    returnDate = dayjs(
+      dayjs(startDate).valueOf() + duration * 30 * 86400 * 1000
+    ).format();
   }
 
   if (rent.durationType === 'hourly') {
     console.log('hourly');
-    returnDate = dayjs(returnDate + duration * 60 * 60 * 1000).format();
+    returnDate = dayjs(
+      dayjs(startDate).valueOf() + duration * 60 * 60 * 1000
+    ).format();
   }
-
-  // console.log(returnDate);
 
   // Calculate price according to rent and duration
 
-  // const order = new Order({
-  //   user: req.user._id,
-  //   item,
-  //   shippingAddress,
-  //   paymentMethod,
-  //   serviceCharge,
-  //   totalPrice,
-  // });
+  console.log(rent);
 
-  // const createdOrder = await order.save();
+  // Calculate subtotal
+  subTotal = rent.price * duration;
+
+  // Check user premiuim for deposit
+  if (user.isPremium) {
+    deposit = 0;
+  } else {
+    deposit = rent.securityAmount;
+  }
+
+  // Make totaPrice
+  totalPrice = subTotal + deposit + serviceCharge;
+
+  console.log(totalPrice);
+  const order = new Order({
+    user: req.user._id,
+    item,
+    shippingAddress,
+    paymentMethod,
+    subTotal,
+    depositCharged: deposit,
+    serviceCharge,
+    totalPrice,
+    startDate,
+    returnDate,
+  });
+  // TODO:update product rent variables
+
+  product.rentedDate = startDate;
+  product.returnDate = returnDate;
+  product.currentlyRentedBy = req.user._id;
+  product.isRented = true;
+  product.sales.revenue = product.sales.revenue + subTotal;
+  product.sales.users = product.sales.users + 1;
+
+  await product.save({ validateBeforeSave: false });
+
+  const createdOrder = await order.save();
   res.status(201).json({
     status: 'success',
     data: {
-      // createdOrder
+      createdOrder,
     },
   });
 });
