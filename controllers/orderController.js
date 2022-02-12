@@ -169,7 +169,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 
     // user currently renting push
     const user = await User.findById(req.user._id);
-    user.currentlyRenting.push(order.item);
+    user.currentlyRenting.unshift(order.item);
 
     // 3)  order update
     order.isPaid = true;

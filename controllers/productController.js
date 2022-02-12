@@ -18,16 +18,47 @@ const createProduct = asyncHandler(async (req, res, next) => {
     );
   }
 
+  const {
+    title,
+    name,
+    brand,
+    category,
+    description,
+    images,
+    rent,
+    longitude,
+    latitude,
+  } = req.body;
+
+  // Check for missing fields
+
+  if (
+    !title ||
+    !name ||
+    !brand ||
+    !category ||
+    !description ||
+    !images ||
+    !rent ||
+    !longitude ||
+    !latitude
+  ) {
+    return next(new AppError('Some fields are missing', 400));
+  }
+
   const product = await Product.create({
     user: req.user._id,
-    title: req.body.title,
-    name: req.body.name,
-    brand: req.body.brand,
-    category: req.body.category,
-    description: req.body.description,
-    images: req.body.images,
-    rent: req.body.rent,
-    location: req.body.location,
+    title,
+    name,
+    brand,
+    category,
+    description,
+    images,
+    rent,
+    location: {
+      type: 'Point',
+      coordinates: [longitude, latitude],
+    },
   });
 
   if (product) {
@@ -45,11 +76,23 @@ const createProduct = asyncHandler(async (req, res, next) => {
 });
 
 // @desc        Fetch all products which are apporved
-// @route       GET /products
+// @route       GET /products/center/:latlng/radius/:distance
 // @access      Public
 const getProducts = asyncHandler(async (req, res, next) => {
+  const { distance, latlng } = req.params;
+  const [lat, lng] = latlng.split(',');
+
+  const radius = distance / 6378.1; // in kms
+
+  if (!lat || !lng) {
+    throw new Error('Please provide lattitude and longitude in format lat,lng');
+  }
+
   const features = new APIFeatures(
-    Product.find({ isVerified: true }),
+    Product.find({
+      isVerified: true,
+      $geoWithin: { $centerSphere: [[lng * 1, lat * 1], radius] },
+    }),
     req.query
   )
     .filter()

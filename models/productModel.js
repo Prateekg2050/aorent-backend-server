@@ -128,6 +128,13 @@ const productSchema = mongoose.Schema(
   }
 );
 
+// indexes
+// 1) Title and User should be unique
+productSchema.index({ title: 1, user: 1 }, { unique: true });
+
+// 2) for geolocation searching
+productSchema.index({ location: '2dsphere' });
+
 //TODO: Add reviews using virtual populate
 
 const Product = mongoose.model('Product', productSchema);

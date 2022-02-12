@@ -14,10 +14,11 @@ import { protect } from '../middleware/authMiddleware.js';
 /********************************************************************************************/
 /********************************************************************************************/
 
-router.route('/').get(getProducts).post(protect, createProduct);
+router.post('/', protect, createProduct);
 
 router.get('/top', getTopProducts);
 
+router.get('/center/:latlng/radius/:distance', getProducts);
 router
   .route('/:id')
   .get(getProductById)
