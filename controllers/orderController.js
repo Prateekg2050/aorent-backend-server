@@ -5,6 +5,22 @@ import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 
+// @desc    Get an order by id
+// @route   GET /orders/:id
+// @access  Private
+const getOrderById = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id).populate(
+    'user',
+    'name email'
+  );
+
+  if (order) {
+    res.json({ status: 'success', data: order });
+  } else {
+    next(new AppError('Order not found', 404));
+  }
+});
+
 // @desc    Create new order
 // @route   POST /orders
 // @access  Private
@@ -63,6 +79,8 @@ const createOrder = asyncHandler(async (req, res, next) => {
     );
   }
 
+  // TODO: 5) Cannot rent his own product
+
   // Rent manipultion
   const rent = product.rent;
   let serviceCharge = req.body.serviceCharge || 0;
@@ -92,8 +110,6 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   // Calculate price according to rent and duration
 
-  console.log(rent);
-
   // Calculate subtotal
   subTotal = rent.price * duration;
 
@@ -104,10 +120,10 @@ const createOrder = asyncHandler(async (req, res, next) => {
     deposit = rent.securityAmount;
   }
 
-  // Make totaPrice
+  // Make totalPrice
   totalPrice = subTotal + deposit + serviceCharge;
 
-  console.log(totalPrice);
+  // Create the order
   const order = new Order({
     user: req.user._id,
     item,
@@ -120,16 +136,6 @@ const createOrder = asyncHandler(async (req, res, next) => {
     startDate,
     returnDate,
   });
-  // TODO:update product rent variables
-
-  product.rentedDate = startDate;
-  product.returnDate = returnDate;
-  product.currentlyRentedBy = req.user._id;
-  product.isRented = true;
-  product.sales.revenue = product.sales.revenue + subTotal;
-  product.sales.users = product.sales.users + 1;
-
-  await product.save({ validateBeforeSave: false });
 
   const createdOrder = await order.save();
   res.status(201).json({
@@ -140,49 +146,30 @@ const createOrder = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Get an order by id
-// @route   GET /orders/:id
-// @access  Private
-const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate(
-    'user',
-    'name email'
-  );
-
-  if (order) {
-    res.json({ status: 'success', data: order });
-  } else {
-    next(new AppError('Order not found', 404));
-  }
-});
-
 // @desc    Update order to Paid
 // @route   PUT /orders/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
   // 1) get the order
-  const order = await Order.findById(req.params.id).populate(
-    'user item',
-    'name email'
-  );
+  const order = await Order.findById(req.params.id);
 
   if (order) {
     // 2) Set rented fields in product
     const product = await Product.findById(order.item);
 
-    product.isRented = true;
+    // Update product rented out variables and update the product sales
+    product.rentedDate = order.startDate;
+    product.returnDate = order.returnDate;
     product.currentlyRentedBy = req.user._id;
-    product.rentedDate = req.body.rentedDate;
-    product.returnDate = req.body.rentedDate + 60 * 1000 * 24 * 30;
+    product.isRented = true;
+    product.sales.revenue = product.sales.revenue + order.subTotal;
+    product.sales.users = product.sales.users + 1;
 
-    const durationType = product.rent.durationType;
-    let minDuration = 1;
-    let returnDate = Date.now();
-
-    if (durationType === 'monthly') {
-    }
+    await product.save({ validateBeforeSave: false });
 
     // user currently renting push
+    const user = await User.findById(req.user._id);
+    user.currentlyRenting.push(order.item);
 
     // 3)  order update
     order.isPaid = true;

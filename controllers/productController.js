@@ -49,7 +49,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
 // @access      Public
 const getProducts = asyncHandler(async (req, res, next) => {
   const features = new APIFeatures(
-    Product.find({ underReview: false }),
+    Product.find({ isVerified: true }),
     req.query
   )
     .filter()
@@ -65,17 +65,18 @@ const getProducts = asyncHandler(async (req, res, next) => {
     data: { doc },
   });
 });
+
 // @desc        Fetch single product by ID
 // @route       GET /products/:id
 // @access      Public
 const getProductById = asyncHandler(async (req, res, next) => {
   let product = await Product.findOne({ _id: req.params.id });
 
-  if (!product.underReview)
+  if (product.isVerified)
     product = await Product.findByIdAndUpdate(
       { _id: req.params.id },
       { $inc: { counter: 1 } },
-      { multi: false, new: true }
+      { new: true }
     );
 
   if (product) {
@@ -157,7 +158,7 @@ const deleteProduct = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc        Get top rated products
+// @desc        Get top rated products for carasouel or something else
 // @route       GET /products/top
 // @access      Public
 const getTopProducts = asyncHandler(async (req, res) => {
