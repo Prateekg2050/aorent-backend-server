@@ -63,15 +63,31 @@ const underReviewUsers = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc        Update user
-// @route       PATCH /admin/user/:id
+// @desc        Approve user
+// @route       PATCH /admin/user/:id/:approve
 // @access      Private/Admin
 const approveUser = asyncHandler(async (req, res, next) => {
-  const doc = await User.findByIdAndUpdate(
-    req.params.id,
-    { underReview: false },
-    { new: true }
-  );
+  if (!req.params.approve === 'approve' || !req.params.approve === 'reject') {
+    next(new AppError('Please select reject or approve option', 400));
+  }
+
+  let doc = undefined;
+
+  if (req.params.approve === 'approve') {
+    doc = await User.findByIdAndUpdate(
+      req.params.id,
+      { underReview: false, isVerified: true },
+      { new: true }
+    );
+  }
+
+  if (req.params.approve === 'reject') {
+    doc = await User.findByIdAndUpdate(
+      req.params.id,
+      { underReview: false, isVerified: false },
+      { new: true }
+    );
+  }
 
   if (!doc) {
     return next(new AppError('No document found with that ID', 404));
@@ -166,17 +182,35 @@ const getProductById = asyncHandler(async (req, res, next) => {
 });
 
 // @desc        Review the product and approve it
-// @route       GET /admin/product/:id/approve
+// @route       GET /admin/product/:id/:approve
 // @access      Private/Admin
 const approveProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findByIdAndUpdate(req.params.id, {
-    underReview: false,
-  });
+  if (!req.params.approve === 'approve' || !req.params.approve === 'reject') {
+    next(new AppError('Please select reject or approve option', 400));
+  }
 
-  if (product) {
+  let doc = undefined;
+
+  if (req.params.approve === 'approve') {
+    doc = await Product.findByIdAndUpdate(
+      req.params.id,
+      { underReview: false, isVerified: true },
+      { new: true }
+    );
+  }
+
+  if (req.params.approve === 'reject') {
+    doc = await Product.findByIdAndUpdate(
+      req.params.id,
+      { underReview: false, isVerified: false },
+      { new: true }
+    );
+  }
+
+  if (doc) {
     res.json({
       status: 'success',
-      message: 'Product Approved',
+      data: { doc },
     });
   } else {
     res.status(400);

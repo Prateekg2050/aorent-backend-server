@@ -10,6 +10,9 @@ import AppError from '../utils/appError.js';
 // @access  Private
 const createOrder = asyncHandler(async (req, res, next) => {
   // Check if user is kyc verified
+  if (!req.user.isVerified) {
+    return next(new AppError('Please get KYC verfied. Try again later', 401));
+  }
 
   let {
     item,
@@ -61,22 +64,19 @@ const createOrder = asyncHandler(async (req, res, next) => {
   }
 
   const rent = product.rent;
-  let returnDate = startDate;
-
-  console.log(rent.durationType);
-  // use dayjs here
+  let returnDate = dayjs(startDate).valueOf();
 
   if (rent.durationType === 'monthly') {
     console.log('monthly');
-    returnDate = new Date(returnDate + duration * 1000 * 60 * 24 * 30);
+    returnDate = dayjs(returnDate + duration * 30 * 86400 * 1000).format();
   }
 
   if (rent.durationType === 'hourly') {
     console.log('hourly');
-    returnDate = new Date(returnDate + duration * 1000 * 60);
+    returnDate = dayjs(returnDate + duration * 60 * 60 * 1000).format();
   }
 
-  console.log(returnDate);
+  // console.log(returnDate);
 
   // Calculate price according to rent and duration
 

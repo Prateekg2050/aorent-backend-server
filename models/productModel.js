@@ -114,6 +114,7 @@ const productSchema = mongoose.Schema(
     },
 
     // approve product boolean
+    isVerified: { type: Boolean, default: false },
     underReview: { type: Boolean, default: true },
   },
   {
