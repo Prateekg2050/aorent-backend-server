@@ -48,12 +48,12 @@ import AppError from '../utils/appError.js';
 // });
 
 const createProductReview = asyncHandler(async (req, res, next) => {
-  const { rating, review, productId } = req.body;
+  const { rating, review } = req.body;
   const doc = await Review.create({
     rating,
     review,
     user: req.user._id,
-    product: productId,
+    product: req.params.productId,
   });
   res.status(201).json({
     status: 'success',

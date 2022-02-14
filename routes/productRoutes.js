@@ -1,5 +1,7 @@
 import express from 'express';
 const router = express.Router();
+
+import reviewRouter from './reviewRoutes.js';
 import {
   getProducts,
   getProductById,
@@ -8,11 +10,12 @@ import {
   updateProduct,
   getTopProducts,
 } from '../controllers/productController.js';
-import { createProductReview } from '../controllers/reviewController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 /********************************************************************************************/
 /********************************************************************************************/
+
+router.use('/:productId/review', reviewRouter);
 
 router.post('/', protect, createProduct);
 

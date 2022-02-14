@@ -78,7 +78,6 @@ app.use(cors());
 // routes
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
-app.use('/review', reviewRoutes);
 app.use('/order', orderRoutes);
 app.use('/admin', adminRoutes);
 
