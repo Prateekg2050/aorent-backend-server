@@ -23,6 +23,7 @@ import AppError from './utils/appError.js';
 // routes import
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 
@@ -77,6 +78,7 @@ app.use(cors());
 // routes
 app.use('/user', userRoutes);
 app.use('/product', productRoutes);
+app.use('/review', reviewRoutes);
 app.use('/order', orderRoutes);
 app.use('/admin', adminRoutes);
 

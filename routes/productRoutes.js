@@ -26,5 +26,3 @@ router
   .put(protect, updateProduct);
 
 export default router;
-
-// router.route('/:id/reviews').post(protect, createProductReview);

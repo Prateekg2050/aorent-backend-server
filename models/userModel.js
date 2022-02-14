@@ -122,8 +122,6 @@ userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
 ) {
-  // this.password is not available because this refers to current document and current document does not have password as it is false
-
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
@@ -134,7 +132,6 @@ userSchema.methods.changedPasswordAfter = async function (JWTTimestamp) {
       10 // base 10
     ); // change date object to timestamp (unix)
 
-    // console.log(changedTimeStamp, JWTTimestamp);
     return JWTTimestamp < changedTimeStamp;
   }
   // False means not changed
@@ -157,7 +154,6 @@ userSchema.methods.createPasswordResetToken = async function () {
 };
 
 userSchema.pre(/^find/, function (next) {
-  // points to the current query
   this.find({ active: { $ne: false } });
   next();
 });
