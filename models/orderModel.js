@@ -61,8 +61,8 @@ const orderSchema = mongoose.Schema(
     paidAt: { type: Date },
 
     // delivery vars
-    isDelivered: Boolean,
-    deliveredAt: Date,
+    isPickedUp: Boolean,
+    pickedUpAt: Date,
 
     // return vars
     returnDate: Date,

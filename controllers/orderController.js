@@ -189,26 +189,34 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update order to Delivered
-// @route   PUT /orders/:id/deliver
+// @desc    Update order to picked up
+// @route   PUT /orders/:id/pickedup
 // @access  Private
-const updateOrderToDelivered = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate(
-    'user',
-    'name email'
-  );
+const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id).populate('user item');
+
+  console.log(order);
 
   if (order) {
-    order.isDelivered = true;
-    order.deliveredAt = Date.now();
+    if (!order.isPaid) {
+      next(new AppError('Pese to denede chacha', 401));
+    }
 
-    const updateOrder = await order.save();
-    res.json(updateOrder);
+    if (!order.item.user._id === req.user._id.toHexString()) {
+      next(new AppError('Only deliver your order.', 401));
+    }
+    order.isPickedUp = true;
+    order.pickedUpAt = Date.now();
+
+    const updateOrder = await order.save({ validateBeforeSave: false });
+    res.json({ status: 'success', data: updateOrder });
   } else {
     res.status(404);
     throw new Error('Order not found');
   }
 });
+
+const updateOrderToReturned = asyncHandler(async (req, res, next) => {});
 
 // @desc    Get logged in user orders
 // @route   GET /orders/myorders
@@ -223,6 +231,7 @@ export {
   createOrder,
   getOrderById,
   updateOrderToPaid,
-  updateOrderToDelivered,
+  updateOrderToPickedUp,
+  updateOrderToReturned,
   getMyOrders,
 };

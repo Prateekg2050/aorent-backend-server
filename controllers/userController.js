@@ -62,6 +62,10 @@ const kycVerify = asyncHandler(async (req, res, next) => {
     next(new AppError('Please give all the required parameters', 400));
   }
 
+  if (req.body.idImage.length !== 2) {
+    next(new AppError('Please send only two images', 400));
+  }
+
   const kycVerify = {
     name: req.body.name,
     idType: req.body.idType,
