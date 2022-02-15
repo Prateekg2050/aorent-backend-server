@@ -73,6 +73,17 @@ const userSchema = mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     ],
 
+    // backlog amount
+    backlog: {
+      referenceOrder: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: true,
+      },
+      amount: { type: Number, required: true, default: 0 },
+      reason: { type: String },
+    },
+
     // membership variables
     isPremium: { type: Boolean, default: false },
     premiumPurchasedAt: Date,

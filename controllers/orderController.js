@@ -199,7 +199,12 @@ const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
 
   if (order) {
     if (!order.isPaid) {
-      next(new AppError('Pese to denede chacha', 401));
+      next(
+        new AppError(
+          'Order is still not paid. Please do not handover the product back to user',
+          401
+        )
+      );
     }
 
     if (!order.item.user._id === req.user._id.toHexString()) {

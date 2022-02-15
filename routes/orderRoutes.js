@@ -24,6 +24,6 @@ router.route('/:id/pay').patch(updateOrderToPaid);
 
 router.route('/:id/pickedup').patch(updateOrderToPickedUp);
 
-router.route('/:id/return').patch(updateOrderToReturned);
+// router.route('/:id/return').patch(updateOrderToReturned);
 
 export default router;
