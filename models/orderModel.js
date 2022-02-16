@@ -67,6 +67,10 @@ const orderSchema = mongoose.Schema(
     // return vars
     returnDate: Date,
     returnDelivered: Boolean,
+
+    // User reimbursement variables
+    // transaction object needs to be added
+    transactionDate: Date,
   },
   {
     timestamps: true,

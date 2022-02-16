@@ -254,6 +254,45 @@ const getTopProducts = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc        Wishlist a product
+// @route       POST /products/:id/wishlist/:addremove
+// @access      Private
+const wishlistProduct = asyncHandler(async (req, res, next) => {
+  if (!(req.params.addremove == 'add') && !(req.params.addremove == 'remove')) {
+    return next(new AppError('Select remove or add option only', 400));
+  }
+
+  let user;
+  if (req.params.addremove === 'add') {
+    user = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      {
+        $push: {
+          wishlist: req.params.id,
+        },
+      },
+      { new: true, safe: true, upsert: true }
+    );
+  }
+
+  if (req.params.addremove === 'remove') {
+    user = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      {
+        $pull: {
+          wishlist: req.params.id,
+        },
+      },
+      { new: true, safe: true, upsert: true }
+    );
+  }
+
+  res.status(200).json({
+    status: '"success',
+    data: user.wishlist,
+  });
+});
+
 export {
   getProductById,
   getProducts,
@@ -262,4 +301,5 @@ export {
   updateProduct,
   listProduct,
   getTopProducts,
+  wishlistProduct,
 };

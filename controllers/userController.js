@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
+import Order from '../models/orderModel.js';
 import AppError from '../utils/appError.js';
 
 // @desc        Get user profile
@@ -8,7 +9,7 @@ import AppError from '../utils/appError.js';
 const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
     .select('-password')
-    .populate('listings currentlyRenting');
+    .populate('listings currentlyRenting wishlist');
 
   if (user) {
     res.json({
@@ -89,6 +90,25 @@ const kycVerify = asyncHandler(async (req, res, next) => {
   } else {
     return next(new AppError('User not found', 404));
   }
+});
+
+// @desc        To get total revenue with date
+// @route       GET /users/:productId/revenue
+// @access      Private
+const revenue = asyncHandler(async (req, res, next) => {
+  const revenue = await Order.aggregate([
+    // 1) lookeup
+    { $lookup },
+    // 2) match with user id
+    { $match: { item: req.params.productId } },
+    // 3) group transactional data
+    {
+      $group: {
+        _id: '$returnDate',
+        income: {},
+      },
+    },
+  ]);
 });
 
 export { getMe, updateUserProfile, kycVerify, deleteMe };
