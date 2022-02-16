@@ -10,7 +10,7 @@ import AppError from '../utils/appError.js';
 const createProduct = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id);
   if (!user.isVerified) {
-    next(
+    return next(
       new AppError(
         'You are not KYC verified. Please submit your KYC verification and wait until approved',
         400
@@ -85,7 +85,12 @@ const getProducts = asyncHandler(async (req, res, next) => {
   const radius = distance / 6378.1; // in kms
 
   if (!lat || !lng) {
-    throw new Error('Please provide lattitude and longitude in format lat,lng');
+    return next(
+      new AppError(
+        'Please provide lattitude and longitude in format lat,lng',
+        400
+      )
+    );
   }
 
   const features = new APIFeatures(
@@ -115,21 +120,24 @@ const getProducts = asyncHandler(async (req, res, next) => {
 const getProductById = asyncHandler(async (req, res, next) => {
   let product = await Product.findOne({ _id: req.params.id });
 
-  if (product.isVerified)
-    product = await Product.findByIdAndUpdate(
-      { _id: req.params.id },
-      { $inc: { counter: 1 } },
-      { new: true }
-    );
-
-  if (product) {
-    res.status(200).json({
-      status: 'success',
-      data: product,
-    });
-  } else {
-    next(new AppError('Product not found', 404));
+  if (!product) {
+    return next(new AppError('Product not found.', 404));
   }
+
+  if (!product.isVerified) {
+    return next(new AppError('Product is not verified.', 400));
+  }
+
+  product = await Product.findByIdAndUpdate(
+    { _id: req.params.id },
+    { $inc: { counter: 1 } },
+    { new: true }
+  );
+
+  res.status(200).json({
+    status: 'success',
+    data: product,
+  });
 });
 
 // @desc        Update a product
@@ -138,12 +146,15 @@ const getProductById = asyncHandler(async (req, res, next) => {
 const updateProduct = asyncHandler(async (req, res, next) => {
   let product = await Product.findById(req.params.id);
 
+  if (!product) {
+    return next(new AppError('Product not found.', 404));
+  }
+
   if (product.user.toHexString() !== req.user._id.toHexString()) {
     return next(
       new AppError('You are not authorized to update the product.', 401)
     );
   }
-  // product is under review as soon as product is updated
 
   product = await Product.findByIdAndUpdate(
     req.params.id,
@@ -154,21 +165,17 @@ const updateProduct = asyncHandler(async (req, res, next) => {
       category: req.body.category,
       description: req.body.description,
       images: req.body.images,
-      underReview: true,
+      underReview: true, // product is under review as soon as product is updated
     },
     {
       new: true,
     }
   );
-  // console.log(product);
-  if (product) {
-    res.json({
-      status: 'success',
-      data: product,
-    });
-  } else {
-    next(new AppError('Product not found.', 404));
-  }
+
+  res.json({
+    status: 'success',
+    data: product,
+  });
 });
 
 // @desc        Delete a product
@@ -179,17 +186,19 @@ const deleteProduct = asyncHandler(async (req, res, next) => {
 
   // 1) Check if product exists
   if (!product) {
-    next(new AppError('Product not found', 404));
+    return next(new AppError('Product not found', 404));
   }
 
   // 2) Check if user deleting is the owner of product
   if (!req.user._id.toHexString() === product.user.toHexString()) {
-    next(new AppError('You are not authorized to delete this product.', 401));
+    return next(
+      new AppError('You are not authorized to delete this product.', 401)
+    );
   }
 
   // 3) Check if product is currently rented by someone
   if (product.isRented) {
-    next(new AppError('Product is currently rented by someone', 400));
+    return next(new AppError('Product is currently rented by someone', 400));
   }
 
   // Execute the deletion

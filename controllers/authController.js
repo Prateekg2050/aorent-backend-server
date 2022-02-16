@@ -32,7 +32,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
     createAndSendToken(user, 201, res);
   } catch (error) {
-    next(new AppError(error, 404));
+    return next(new AppError(error, 404));
   }
 });
 
@@ -45,7 +45,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
   // 1) check if email and password exists
   if (!email || !password) {
-    next(new AppError('Please provide email and password', 400));
+    return next(new AppError('Please provide email and password', 400));
   }
 
   // 2) check if user exists and password is correct
@@ -67,7 +67,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
-    next(new AppError('There is no user with this email address', 404));
+    return next(new AppError('There is no user with this email address', 404));
   }
 
   // 2) Generate a random reset token
@@ -97,7 +97,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
-    return next(new AppError(`${error}`), 500);
+    // return next(new AppError(`${error}`), 500);
     return next(
       new AppError('There was an error sending the email. Try again later'),
       500
@@ -142,9 +142,6 @@ const updatePassword = asyncHandler(async (req, res, next) => {
   // 1) Get user from collection
   const user = await User.findById(req.user._id).select('+password');
 
-  console.log(
-    await user.correctPassword(req.body.passwordCurrent, user.password)
-  );
   // 2) check if POSTed current password is correctPassword
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
     return next(new AppError('Your current password is wrong', 401));
@@ -160,7 +157,7 @@ const updatePassword = asyncHandler(async (req, res, next) => {
 
   await user.save();
 
-  // $) Log in user, send JWT
+  // 4) Log in user, send JWT
   createAndSendToken(user, 200, res);
 });
 

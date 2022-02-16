@@ -68,7 +68,7 @@ const underReviewUsers = asyncHandler(async (req, res, next) => {
 // @access      Private/Admin
 const approveUser = asyncHandler(async (req, res, next) => {
   if (!req.params.approve === 'approve' || !req.params.approve === 'reject') {
-    next(new AppError('Please select reject or approve option', 400));
+    return next(new AppError('Please select reject or approve option', 400));
   }
 
   let doc = undefined;
@@ -129,7 +129,8 @@ const getProducts = asyncHandler(async (req, res, next) => {
     .filter()
     .sort()
     .limitFields()
-    .paginate();
+    .paginate()
+    .keyword();
 
   const doc = await features.query;
 

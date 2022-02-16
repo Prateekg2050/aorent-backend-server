@@ -1,5 +1,4 @@
 import asyncHandler from 'express-async-handler';
-import generateToken from '../utils/generateToken.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 
@@ -10,6 +9,7 @@ const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
     .select('-password')
     .populate('listings currentlyRenting');
+
   if (user) {
     res.json({
       status: 'success',
@@ -61,11 +61,11 @@ const kycVerify = asyncHandler(async (req, res, next) => {
     !req.body.idNumber ||
     !req.body.idImage
   ) {
-    next(new AppError('Please give all the required parameters', 400));
+    return next(new AppError('Please give all the required parameters', 400));
   }
 
   if (req.body.idImage.length !== 2) {
-    next(new AppError('Please send only two images', 400));
+    return next(new AppError('Please send only two images', 400));
   }
 
   const kycVerify = {
@@ -87,8 +87,7 @@ const kycVerify = asyncHandler(async (req, res, next) => {
       data: { user },
     });
   } else {
-    res.status(404);
-    throw new Error('User not found');
+    return next(new AppError('User not found', 404));
   }
 });
 

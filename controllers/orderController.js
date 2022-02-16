@@ -17,7 +17,7 @@ const getOrderById = asyncHandler(async (req, res) => {
   if (order) {
     res.json({ status: 'success', data: order });
   } else {
-    next(new AppError('Order not found', 404));
+    return next(new AppError('Order not found', 404));
   }
 });
 
@@ -120,6 +120,8 @@ const createOrder = asyncHandler(async (req, res, next) => {
     deposit = rent.securityAmount;
   }
 
+  //TODO: Take the factor of coupon code
+
   // Make totalPrice
   totalPrice = subTotal + deposit + serviceCharge;
 
@@ -208,8 +210,9 @@ const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
     }
 
     if (!order.item.user._id === req.user._id.toHexString()) {
-      next(new AppError('Only deliver your order.', 401));
+      next(new AppError('Only deliver your product.', 401));
     }
+
     order.isPickedUp = true;
     order.pickedUpAt = Date.now();
 
