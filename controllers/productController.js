@@ -167,9 +167,39 @@ const updateProduct = asyncHandler(async (req, res, next) => {
       images: req.body.images,
       underReview: true, // product is under review as soon as product is updated
     },
-    {
-      new: true,
-    }
+    { new: true }
+  );
+
+  res.json({
+    status: 'success',
+    data: product,
+  });
+});
+
+// @desc        List or unlist a product from website
+// @route       PATCH /products/:id/list
+// @access      Private
+const listProduct = asyncHandler(async (req, res, next) => {
+  let product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return next(new AppError('Product not found.', 404));
+  }
+
+  if (product.user.toHexString() !== req.user._id.toHexString()) {
+    return next(
+      new AppError('You are not authorized to update the product.', 401)
+    );
+  }
+
+  if (!product.isVerified) {
+    return next(new AppError('Product is not verified', 400));
+  }
+
+  product = await Product.findByIdAndUpdate(
+    req.params.id,
+    { isListed: !isListed },
+    { new: true }
   );
 
   res.json({
@@ -230,5 +260,6 @@ export {
   deleteProduct,
   createProduct,
   updateProduct,
+  listProduct,
   getTopProducts,
 };

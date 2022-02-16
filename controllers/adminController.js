@@ -195,7 +195,7 @@ const approveProduct = asyncHandler(async (req, res) => {
   if (req.params.approve === 'approve') {
     doc = await Product.findByIdAndUpdate(
       req.params.id,
-      { underReview: false, isVerified: true },
+      { underReview: false, isVerified: true, isListed: true },
       { new: true }
     );
   }

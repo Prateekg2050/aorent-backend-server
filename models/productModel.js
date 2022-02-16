@@ -35,6 +35,7 @@ const productSchema = mongoose.Schema(
           'sports',
           'entertainment',
           'luxury',
+          'games',
           'agriculture',
           'other',
         ],
@@ -116,6 +117,7 @@ const productSchema = mongoose.Schema(
     // approve product boolean
     isVerified: { type: Boolean, default: false },
     underReview: { type: Boolean, default: true },
+    isListed: { type: Boolean, default: false },
   },
   {
     timestamps: true,

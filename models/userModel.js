@@ -72,6 +72,7 @@ const userSchema = mongoose.Schema(
     currentlyRenting: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     ],
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
 
     // backlog amount
     backlog: {

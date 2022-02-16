@@ -217,14 +217,49 @@ const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
     order.pickedUpAt = Date.now();
 
     const updateOrder = await order.save({ validateBeforeSave: false });
-    res.json({ status: 'success', data: updateOrder });
+
+    res.json({
+      status: 'success',
+      data: updateOrder,
+    });
   } else {
-    res.status(404);
-    throw new Error('Order not found');
+    next(new AppError('Order not found', 404));
   }
 });
 
-const updateOrderToReturned = asyncHandler(async (req, res, next) => {});
+const updateOrderToReturned = asyncHandler(async (req, res, next) => {
+  const order = await Order.findById(req.params.id).populate('user item');
+  // console.log(order.item);
+  if (!order) {
+    next(new AppError('Order not found', 404));
+  }
+  // console.log(order);
+
+  if (!order.item.user._id === req.user._id.toHexString()) {
+    next(new AppError('Only confirm your order.', 401));
+  }
+
+  order.returnDelivered = true;
+  order.returnDate = Date.now();
+
+  // change back product variables
+  const product = await Product.findById(order.item._id);
+  product.rentedDate = undefined;
+  product.returnDate = undefined;
+  product.currentlyRentedBy = undefined;
+  product.isRented = false;
+  product.isListed = false;
+
+  await product.save({ validateBeforeSave: false });
+
+  const updateOrder = await order.save({ validateBeforeSave: false });
+  //TODO: add backlog if late submit
+
+  res.json({
+    status: 'success',
+    data: updateOrder,
+  });
+});
 
 // @desc    Get logged in user orders
 // @route   GET /orders/myorders
@@ -232,7 +267,10 @@ const updateOrderToReturned = asyncHandler(async (req, res, next) => {});
 const getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({ user: req.user._id });
 
-  res.status(200).json({ status: 'success', data: orders });
+  res.status(200).json({
+    status: 'success',
+    data: orders,
+  });
 });
 
 export {
