@@ -4,6 +4,7 @@ import Product from '../models/productModel.js';
 import Order from '../models/orderModel.js';
 import AppError from '../utils/appError.js';
 import APIFeatures from '../utils/apiFeatures.js';
+import sendNotification from '../utils/notification.js';
 
 /********************************************************************************************/
 /*****************************************User Routes****************************************/
@@ -79,6 +80,13 @@ const approveUser = asyncHandler(async (req, res, next) => {
       { underReview: false, isVerified: true },
       { new: true }
     );
+
+    sendNotification(
+      req.params.id,
+      'success',
+      'KYC approved',
+      'Your KYC request has been approved'
+    );
   }
 
   if (req.params.approve === 'reject') {
@@ -86,6 +94,13 @@ const approveUser = asyncHandler(async (req, res, next) => {
       req.params.id,
       { underReview: false, isVerified: false },
       { new: true }
+    );
+
+    sendNotification(
+      req.params.id,
+      'fail',
+      'KYC rejected',
+      'Your KYC request has been rejected'
     );
   }
 

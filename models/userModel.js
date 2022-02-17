@@ -107,6 +107,16 @@ const userSchema = mongoose.Schema(
 
     // active
     active: { type: Boolean, default: true, required: true },
+
+    // notifications
+    notification: [
+      {
+        date: Date,
+        type: { type: String, enum: ['success', 'fail', 'general'] },
+        title: { type: String },
+        content: { type: String },
+      },
+    ],
   },
   { timestamps: true }
 );
