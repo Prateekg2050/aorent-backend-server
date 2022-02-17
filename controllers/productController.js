@@ -103,7 +103,8 @@ const getProducts = asyncHandler(async (req, res, next) => {
     .filter()
     .sort()
     .limitFields()
-    .paginate();
+    .paginate()
+    .keyword();
 
   const doc = await features.query;
 
