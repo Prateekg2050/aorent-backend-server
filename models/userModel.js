@@ -79,9 +79,8 @@ const userSchema = mongoose.Schema(
       referenceOrder: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
-        required: true,
       },
-      amount: { type: Number, required: true, default: 0 },
+      amount: { type: Number, default: 0 },
       reason: { type: String },
     },
 
