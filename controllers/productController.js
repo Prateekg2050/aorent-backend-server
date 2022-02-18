@@ -194,7 +194,7 @@ const updateProduct = asyncHandler(async (req, res, next) => {
 });
 
 // @desc        List or unlist a product from website
-// @route       PATCH /products/:id/list
+// @route       PATCH /product/:id/list
 // @access      Private
 const listProduct = asyncHandler(async (req, res, next) => {
   let product = await Product.findById(req.params.id);
@@ -210,7 +210,12 @@ const listProduct = asyncHandler(async (req, res, next) => {
   }
 
   if (!product.isVerified) {
-    return next(new AppError('Product is not verified', 400));
+    return next(
+      new AppError(
+        'Product is still not verified. Please wait for admin to approve this',
+        400
+      )
+    );
   }
 
   product = await Product.findByIdAndUpdate(

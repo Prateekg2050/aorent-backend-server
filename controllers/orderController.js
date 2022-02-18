@@ -66,14 +66,14 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   // 3) If the product is verified
   if (!product.isVerified) {
-    return next(new AppError('This product is rejected', 400));
+    return next(new AppError('This product is not verified', 400));
   }
 
   // 4)Check if product is already rented out
   if (product.isRented) {
     return next(
       new AppError(
-        'This item is already rented out. Please come after some time',
+        'This item is already rented out. Please try again later',
         400
       )
     );
@@ -140,12 +140,32 @@ const createOrder = asyncHandler(async (req, res, next) => {
   });
 
   const createdOrder = await order.save();
+
+  // giving 15 minutes to pay the order else order will be deleted
+  setTimeout(function () {
+    cancelOrder(createdOrder._id);
+  }, 15 * 60 * 1000);
   res.status(201).json({
     status: 'success',
     data: {
       createdOrder,
     },
   });
+});
+
+// @desc    Cancel a order
+// @route   util function
+// @access  Internal access only
+const cancelOrder = asyncHandler(async (orderId) => {
+  const order = await Order.findById(orderId);
+
+  if (order.isPaid) {
+    console.log('order was paid');
+  } else {
+    // TODO: Reset variables
+    order.remove();
+  }
+  console.log('order deleted due to payment failure');
 });
 
 // @desc    Update order to Paid
@@ -186,8 +206,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
     const updateOrder = await order.save();
     res.json(updateOrder);
   } else {
-    res.status(404);
-    throw new Error('Order not found');
+    next(new AppError('Order not found', 404));
   }
 });
 

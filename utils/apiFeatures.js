@@ -54,10 +54,17 @@ class APIFeatures {
 
   keyword() {
     const keyword = this.queryString.keyword
-      ? { title: { $regex: this.queryString.keyword, $options: 'i' } }
+      ? {
+          $or: [
+            { title: { $regex: this.queryString.keyword, $options: 'i' } },
+            {
+              description: { $regex: this.queryString.keyword, $options: 'i' },
+            },
+          ],
+        }
       : {};
 
-    this.query = this.query.find({ ...keyword });
+    this.query = this.query.find(keyword);
     return this;
   }
 }
