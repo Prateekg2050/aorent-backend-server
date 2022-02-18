@@ -16,9 +16,9 @@ const createProductReview = asyncHandler(async (req, res, next) => {
   // check if user has used the product before
   const order = await Order.findOne({
     user: req.user._id,
-    item: req.params.productId,
-    isPaid: true,
-    returnDate: { $lte: new Date(dayjs().format()) },
+    // item: req.params.productId,
+    // isPaid: true,
+    // returnDate: { $lte: new Date(dayjs().format()) },
   });
 
   if (!order) {

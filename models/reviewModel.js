@@ -6,23 +6,33 @@ const reviewSchema = mongoose.Schema(
     rating: {
       type: Number,
       required: true,
+      min: 1,
+      max: 5,
     },
     review: {
       type: String,
-      required: true,
+      required: [true, 'Review can not be empty.'],
     },
     user: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      type: mongoose.Schema.ObjectId,
+      required: [true, 'Review must belong to a user'],
       ref: 'User',
     },
     product: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      type: mongoose.Schema.ObjectId,
+      required: [true, 'Review must belong to a product'],
       ref: 'Product',
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+    },
+    toObject: {
+      virtuals: true,
+    },
+  }
 );
 
 reviewSchema.index({ user: 1, product: 1 }, { unique: true });
@@ -30,7 +40,7 @@ reviewSchema.index({ user: 1, product: 1 }, { unique: true });
 reviewSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'user',
-    select: 'name',
+    select: 'name avatar',
   });
   next();
 });
@@ -66,7 +76,6 @@ reviewSchema.statics.calcAverageRatings = async function (productId) {
 reviewSchema.post('save', function () {
   // this points to current review
   // this.constructor is the model
-  console.log(this);
   this.constructor.calcAverageRatings(this.product);
 });
 
@@ -74,12 +83,12 @@ reviewSchema.post('save', function () {
 // findByIdAndDelete
 reviewSchema.pre(/^findOneAnd/, async function (next) {
   this.r = await this.clone().findOne();
-  console.log(this.r);
+  // console.log(this.r);
   next();
 });
 
 reviewSchema.post(/^findOneAnd/, async function () {
-  // this.r = await this.findOne(); does NOT WORK here. as already executed
+  // this.r = await this.findOne(); does NOT WORK here.as already executed
   if (!this) await this.r.constructor.calcAverageRatings(this.r.product);
 });
 

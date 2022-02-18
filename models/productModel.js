@@ -110,8 +110,13 @@ const productSchema = mongoose.Schema(
       },
       // longitude , latitude
       coordinates: [Number],
-      address: String,
-      description: String,
+      pickupAddress: {
+        address: { type: String },
+        city: { type: String },
+        state: { type: String },
+        pinCode: { type: Number },
+      },
+      comment: String,
     },
 
     // approve product boolean
@@ -119,15 +124,7 @@ const productSchema = mongoose.Schema(
     underReview: { type: Boolean, default: true },
     isListed: { type: Boolean, default: false },
   },
-  {
-    timestamps: true,
-    toJSON: {
-      virtuals: true,
-    },
-    toObject: {
-      virtuals: true,
-    },
-  }
+  { timestamps: true }
 );
 
 // indexes
@@ -137,7 +134,15 @@ productSchema.index({ title: 1, user: 1 }, { unique: true });
 // 2) for geolocation searching
 productSchema.index({ location: '2dsphere' });
 
-//TODO: Add reviews using virtual populate
+//virtual populate for reviews
+productSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'product',
+  localField: '_id',
+});
+
+productSchema.set('toObject', { virtuals: true });
+productSchema.set('toJSON', { virtuals: true });
 
 const Product = mongoose.model('Product', productSchema);
 

@@ -92,7 +92,7 @@ const approveUser = asyncHandler(async (req, res, next) => {
   if (req.params.approve === 'reject') {
     doc = await User.findByIdAndUpdate(
       req.params.id,
-      { underReview: false, isVerified: false },
+      { underReview: false, isVerified: false, kycDetails: {} },
       { new: true }
     );
 

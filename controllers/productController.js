@@ -28,6 +28,11 @@ const createProduct = asyncHandler(async (req, res, next) => {
     rent,
     longitude,
     latitude,
+    address,
+    city,
+    state,
+    pinCode,
+    comment,
   } = req.body;
 
   // Check for missing fields
@@ -41,7 +46,11 @@ const createProduct = asyncHandler(async (req, res, next) => {
     !images ||
     !rent ||
     !longitude ||
-    !latitude
+    !latitude ||
+    !address ||
+    !city ||
+    !state ||
+    !pinCode
   ) {
     return next(new AppError('Some fields are missing', 400));
   }
@@ -58,6 +67,13 @@ const createProduct = asyncHandler(async (req, res, next) => {
     location: {
       type: 'Point',
       coordinates: [longitude, latitude],
+      address: {
+        address,
+        city,
+        state,
+        pinCode,
+      },
+      comment,
     },
   });
 
@@ -119,7 +135,7 @@ const getProducts = asyncHandler(async (req, res, next) => {
 // @route       GET /products/:id
 // @access      Public
 const getProductById = asyncHandler(async (req, res, next) => {
-  let product = await Product.findOne({ _id: req.params.id });
+  let product = await Product.findById(req.params.id);
 
   if (!product) {
     return next(new AppError('Product not found.', 404));
@@ -133,7 +149,7 @@ const getProductById = asyncHandler(async (req, res, next) => {
     { _id: req.params.id },
     { $inc: { counter: 1 } },
     { new: true }
-  );
+  ).populate({ path: 'reviews' });
 
   res.status(200).json({
     status: 'success',
