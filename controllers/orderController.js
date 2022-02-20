@@ -5,6 +5,8 @@ import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 
+import Razorpay from 'razorpay';
+
 // @desc    Get an order by id
 // @route   GET /orders/:id
 // @access  Private
@@ -141,12 +143,24 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   const createdOrder = await order.save();
 
+  const razorpay = new Razorpay({
+    key_id: `${process.env.RAZORPAY_KEY_ID}`,
+    key_secret: `${process.env.RAZORPAY_KEY_SECRET}`,
+  });
+
+  const razorpayId = await razorpay.orders.create({
+    amount: totalPrice,
+    currency: 'INR',
+    reciept: createdOrder._id,
+  });
+
   // giving 15 minutes to pay the order else order will be deleted
   setTimeout(function () {
     cancelOrder(createdOrder._id);
-  }, 15 * 60 * 1000);
+  }, 2 * 60 * 1000);
   res.status(201).json({
     status: 'success',
+    razorpayId,
     data: {
       createdOrder,
     },
@@ -163,7 +177,7 @@ const cancelOrder = asyncHandler(async (orderId) => {
     console.log('order was paid');
   } else {
     // TODO: Reset variables
-    order.remove();
+    await order.remove();
   }
   console.log('order deleted due to payment failure');
 });
