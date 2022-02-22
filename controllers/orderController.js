@@ -1,11 +1,11 @@
 import asyncHandler from 'express-async-handler';
 import dayjs from 'dayjs';
+import shortid from 'shortid';
 import Order from '../models/orderModel.js';
 import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
-
-import Razorpay from 'razorpay';
+import razorpay from '../config/razorpay.js';
 
 // @desc    Get an order by id
 // @route   GET /orders/:id
@@ -143,21 +143,24 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   const createdOrder = await order.save();
 
-  const razorpay = new Razorpay({
-    key_id: `${process.env.RAZORPAY_KEY_ID}`,
-    key_secret: `${process.env.RAZORPAY_KEY_SECRET}`,
+  const razorpayId = await razorpay.orders.create({
+    amount: totalPrice * 100,
+    currency: 'INR',
+    receipt: shortid.generate(),
+    notes: {
+      desc: `OrderId : ${createdOrder._id} , Item ${item} , User : ${req.user._id} `,
+    },
   });
 
-  const razorpayId = await razorpay.orders.create({
-    amount: totalPrice,
-    currency: 'INR',
-    reciept: createdOrder._id,
-  });
+  if (!razorpayId) {
+    return next(new AppError('Error in order creation', 400));
+  }
 
   // giving 15 minutes to pay the order else order will be deleted
   setTimeout(function () {
     cancelOrder(createdOrder._id);
   }, 2 * 60 * 1000);
+
   res.status(201).json({
     status: 'success',
     razorpayId,
@@ -186,11 +189,34 @@ const cancelOrder = asyncHandler(async (orderId) => {
 // @route   PUT /orders/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
+  const { orderCreationId, razorpayPaymentId, razorpaySignature } = req.body;
+
+  // Check for payment variables
+  if (!orderCreationId)
+    return next(new AppError('Order creation ID is required', 400));
+
+  if (!razorpayPaymentId)
+    return next(new AppError('razorpayPaymentId is requiered', 400));
+
+  if (!razorpaySignature)
+    return next(new AppError('razorpaySignature is requiered', 400));
+
   // 1) get the order
   const order = await Order.findById(req.params.id);
 
+  // 2) Check for valid payment
+  const shasum = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+  shasum.update(`${orderCreationId}|${razorpayPaymentId}`);
+  const digest = shasum.digest('hex');
+
+  if (digest !== razorpaySignature) {
+    return next(new AppError('Transaction is not legit', 400));
+  } else if (digest === razorpaySignature) {
+    // create new payment
+  }
+
   if (order) {
-    // 2) Set rented fields in product
+    // 3) Set rented fields in product
     const product = await Product.findById(order.item);
 
     // Update product rented out variables and update the product sales
@@ -207,7 +233,7 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
     user.currentlyRenting.unshift(order.item);
 
-    // 3)  order update
+    // 4)  order update
     order.isPaid = true;
     order.paidAt = Date.now();
     order.paymentResult = {
@@ -236,7 +262,7 @@ const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
     if (!order.isPaid) {
       next(
         new AppError(
-          'Order is still not paid. Please do not handover the product back to user',
+          'Order is still not paid. Please do not handover the product to user',
           401
         )
       );
