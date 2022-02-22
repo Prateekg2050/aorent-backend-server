@@ -7,6 +7,7 @@ import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
 import AppError from '../utils/appError.js';
 import razorpay from '../config/razorpay.js';
+import Transaction from '../models/transactionModel.js';
 
 // @desc    Get an order by id
 // @route   GET /orders/:id
@@ -157,10 +158,16 @@ const createOrder = asyncHandler(async (req, res, next) => {
     return next(new AppError('Error in order creation', 400));
   }
 
+  order.razorpay = razorpayId;
+  await order.save({ validateBeforeSave: false });
+
   // giving 15 minutes to pay the order else order will be deleted
-  setTimeout(function () {
-    cancelOrder(createdOrder._id);
-  }, 2 * 60 * 1000);
+
+  // TODO: production will have this code
+
+  // setTimeout(function () {
+  //   cancelOrder(createdOrder._id);
+  // }, 2 * 60 * 1000);
 
   res.status(201).json({
     status: 'success',
@@ -197,13 +204,32 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
     return next(new AppError('Order creation ID is required', 400));
 
   if (!razorpayPaymentId)
-    return next(new AppError('razorpayPaymentId is requiered', 400));
+    return next(new AppError('razorpayPaymentId is required', 400));
 
   if (!razorpaySignature)
-    return next(new AppError('razorpaySignature is requiered', 400));
+    return next(new AppError('razorpaySignature is required', 400));
 
   // 1) get the order
   const order = await Order.findById(req.params.id);
+
+  if (!order)
+    return next(
+      new AppError(
+        'The order might have cancelled due to payment failure. Please place another order',
+        400
+      )
+    );
+
+  console.log(order);
+  // and product
+  const product = await Product.findById(order.item);
+  if (!product)
+    return next(
+      new AppError(
+        'Product you are trying to order is not available somehow',
+        400
+      )
+    );
 
   // 2) Check for valid payment
   const shasum = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
@@ -213,12 +239,21 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
   if (digest !== razorpaySignature) {
     return next(new AppError('Transaction is not legit', 400));
   } else if (digest === razorpaySignature) {
-    // create new payment
+    const transaction = new Transaction({
+      user: req.user._id,
+      item: order.item,
+      order: order._id,
+      status: 'Paid',
+      orderid: orderCreationId,
+      paymentId: razorpayPaymentId,
+      amount: order.totalPrice,
+    });
+
+    await transaction.save();
   }
 
   if (order) {
     // 3) Set rented fields in product
-    const product = await Product.findById(order.item);
 
     // Update product rented out variables and update the product sales
     product.rentedDate = order.startDate;
@@ -234,18 +269,19 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.user._id);
     user.currentlyRenting.unshift(order.item);
 
+    // Save user
+    await user.save({ validateBeforeSave: false });
+
     // 4)  order update
     order.isPaid = true;
     order.paidAt = Date.now();
-    order.paymentResult = {
-      id: req.body.id,
-      status: req.body.status,
-      update_time: req.body.update_time,
-      email_address: req.body.payer.email_address,
-    };
 
     const updateOrder = await order.save();
-    res.json(updateOrder);
+    res.json({
+      status: 'success',
+      data: updateOrder,
+      message: 'Paid for order successfully',
+    });
   } else {
     next(new AppError('Order not found', 404));
   }
@@ -257,50 +293,76 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
 const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate('user item');
 
-  console.log(order);
+  console.log(order.item);
 
-  if (order) {
-    if (!order.isPaid) {
-      next(
-        new AppError(
-          'Order is still not paid. Please do not handover the product to user',
-          401
-        )
-      );
-    }
+  // 1) Check if order is available
+  if (!order) next(new AppError('Order not found', 404));
 
-    if (!order.item.user._id === req.user._id.toHexString()) {
-      next(new AppError('Only deliver your product.', 401));
-    }
+  // 2) Check for permission
+  if (req.user._id.toHexString() !== order.item.user.toHexString())
+    return next(
+      new AppError(
+        'Only the owner of product can update it to be picked up',
+        401
+      )
+    );
 
-    order.isPickedUp = true;
-    order.pickedUpAt = Date.now();
+  // 3) Check if order is paid
+  if (!order.isPaid)
+    return next(
+      new AppError(
+        'Order is still not paid. Please do not handover the product to user',
+        401
+      )
+    );
 
-    const updateOrder = await order.save({ validateBeforeSave: false });
+  // 4) Start changing variables
 
-    res.json({
-      status: 'success',
-      data: updateOrder,
-    });
-  } else {
-    next(new AppError('Order not found', 404));
-  }
+  order.isPickedUp = true;
+  order.pickedUpAt = Date.now();
+
+  const updatedOrder = await order.save({ validateBeforeSave: false });
+
+  res.json({
+    status: 'success',
+    data: updatedOrder,
+    message: 'Rentee has picked up the product from the owner',
+  });
 });
 
 const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate('user item');
-  // console.log(order.item);
-  if (!order) {
-    next(new AppError('Order not found', 404));
-  }
-  // console.log(order);
 
-  if (!order.item.user._id === req.user._id.toHexString()) {
-    next(new AppError('Only confirm your order.', 401));
-  }
+  // 1) Check if order is available
+  if (!order) next(new AppError('Order not found', 404));
 
+  // 2) Check for permission
+  if (req.user._id.toHexString() !== order.item.user.toHexString())
+    return next(
+      new AppError(
+        'Only the owner of product can update it to be picked up',
+        401
+      )
+    );
+
+  // 3) Start changing variables
   order.returnDelivered = true;
   order.returnDate = Date.now();
+
+  //TODO: add backlog if late submit
+  // console.log(new Date(Date.now()));
+  // console.log(new Date(order.item.returnDate));
+
+  if (Date.now() < new Date(order.item.returnDate)) {
+    const user = await User.findById(order.user);
+    
+    console.log(user);
+  }
+
+  const date = Date.now();
+  // console.log(date);
+
+  console.log(x);
 
   // change back product variables
   const product = await Product.findById(order.item._id);
@@ -313,7 +375,6 @@ const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   await product.save({ validateBeforeSave: false });
 
   const updateOrder = await order.save({ validateBeforeSave: false });
-  //TODO: add backlog if late submit
 
   res.json({
     status: 'success',
