@@ -140,7 +140,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
     serviceCharge,
     totalPrice,
     startDate,
-    returnDate,
+    proposedReturnDate,
   });
 
   const createdOrder = await order.save();
@@ -257,7 +257,7 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
 
     // Update product rented out variables and update the product sales
     product.rentedDate = order.startDate;
-    product.returnDate = order.returnDate;
+    product.returnDate = order.proposedReturnDate;
     product.currentlyRentedBy = req.user._id;
     product.isRented = true;
     product.sales.revenue = product.sales.revenue + order.subTotal;
@@ -353,10 +353,19 @@ const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   // console.log(new Date(Date.now()));
   // console.log(new Date(order.item.returnDate));
 
-  if (Date.now() < new Date(order.item.returnDate)) {
-    const user = await User.findById(order.user);
-    
+  if (new Date(Date.now()) > new Date(order.returnDate)) {
+    console.log('in if');
+    console.log(order.user._id);
+    const user = await User.findByIdAndUpdate(order.user._id, {
+      backlog: {
+        referenceOrder: order._id,
+        amount: order.item.rent.lateFees,
+        reason: 'You delivered the item back late than it was expected to.',
+      },
+    });
+
     console.log(user);
+    // console.log(order.returnDate);
   }
 
   const date = Date.now();

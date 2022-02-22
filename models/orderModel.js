@@ -45,6 +45,7 @@ const orderSchema = mongoose.Schema(
 
     // renting vars
     startDate: Date,
+    proposedReturnDate: Date,
 
     // payment vars
     isPaid: {
