@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import dayjs from 'dayjs';
 import shortid from 'shortid';
+import crypto from 'crypto';
 import Order from '../models/orderModel.js';
 import Product from '../models/productModel.js';
 import User from '../models/userModel.js';
@@ -188,7 +189,7 @@ const cancelOrder = asyncHandler(async (orderId) => {
 // @desc    Update order to Paid
 // @route   PUT /orders/:id/pay
 // @access  Private
-const updateOrderToPaid = asyncHandler(async (req, res) => {
+const updateOrderToPaid = asyncHandler(async (req, res, next) => {
   const { orderCreationId, razorpayPaymentId, razorpaySignature } = req.body;
 
   // Check for payment variables
