@@ -10,14 +10,17 @@ const productSchema = mongoose.Schema(
     title: {
       type: String,
       required: [true, 'Please give a title'],
+      default: '',
     },
     name: {
       type: String,
       required: [true, 'Please give a name'],
+      default: '',
     },
     brand: {
       type: String,
       required: [true, 'Please tell us the brand'],
+      default: '',
     },
     category: {
       type: String,
@@ -45,8 +48,9 @@ const productSchema = mongoose.Schema(
     description: {
       type: String,
       required: [true, 'Please enter the description'],
+      default: '',
     },
-    images: [{ type: String }],
+    images: [{ type: String, default: '' }],
     rent: {
       durationType: {
         type: String,
@@ -66,7 +70,7 @@ const productSchema = mongoose.Schema(
       type: Date,
       validate: {
         validator: function (val) {
-          return returnDate > rentedDate;
+          return val > this.rentedDate;
         },
         message: 'Return date should be greater than rented on date',
       },

@@ -8,6 +8,7 @@ const userSchema = mongoose.Schema(
     name: {
       type: String,
       trim: true,
+      default: '',
       // required: [true, 'Please tell us your name'],
     },
     phoneNumber: {
@@ -44,16 +45,16 @@ const userSchema = mongoose.Schema(
       },
     },
     shippingAddress: {
-      address: { type: String },
-      city: { type: String },
-      state: { type: String },
-      pinCode: { type: Number },
+      address: { type: String, default: '' },
+      city: { type: String, default: '' },
+      state: { type: String, default: '' },
+      pinCode: { type: Number, default: '' },
     },
-    avatar: { type: String },
+    avatar: { type: String, default: '' },
 
     // verification
     kycDetails: {
-      name: { type: String },
+      name: { type: String, default: '' },
       idType: {
         type: String,
         enum: ['aadhar', 'voter', 'pan', 'passport', 'license'],
@@ -81,7 +82,7 @@ const userSchema = mongoose.Schema(
         ref: 'Order',
       },
       amount: { type: Number, default: 0 },
-      reason: { type: String },
+      reason: { type: String, default: '' },
     },
 
     // membership variables
