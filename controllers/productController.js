@@ -220,7 +220,7 @@ const listProduct = asyncHandler(async (req, res, next) => {
 
   product = await Product.findByIdAndUpdate(
     req.params.id,
-    { isListed: !isListed },
+    { isListed: !product.isListed },
     { new: true }
   );
 
@@ -306,7 +306,7 @@ const wishlistProduct = asyncHandler(async (req, res, next) => {
   }
 
   res.status(200).json({
-    status: '"success',
+    status: 'success',
     data: user.wishlist,
   });
 });

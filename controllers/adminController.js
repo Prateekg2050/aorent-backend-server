@@ -85,7 +85,7 @@ const approveUser = asyncHandler(async (req, res, next) => {
   if (req.params.approve === 'approve') {
     user = await User.findByIdAndUpdate(
       req.params.id,
-      { underReview: false, isVerified: true },
+      { underReview: false, isVerified: true, verificationDate: Date.now() },
       { new: true }
     );
 
@@ -214,7 +214,7 @@ const approveProduct = asyncHandler(async (req, res) => {
   }
 
   let doc = undefined;
-
+  //  TODO: Send notifications
   if (req.params.approve === 'approve') {
     doc = await Product.findByIdAndUpdate(
       req.params.id,
@@ -223,6 +223,7 @@ const approveProduct = asyncHandler(async (req, res) => {
     );
   }
 
+  //TODO: cron  job to delete these type of products
   if (req.params.approve === 'reject') {
     doc = await Product.findByIdAndUpdate(
       req.params.id,

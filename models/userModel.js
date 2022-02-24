@@ -56,6 +56,7 @@ const userSchema = mongoose.Schema(
       },
       idNumber: { type: String },
       idImage: [String],
+      verificationDate: { type: Date },
     },
     isVerified: { type: Boolean, default: false },
     underReview: {
