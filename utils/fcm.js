@@ -1,21 +1,21 @@
 import FCM from 'fcm-node';
 
-export const sendNotification = (token) => {
+export const sendNotification = (token, title, body) => {
   let serverKey = process.env.FIREBASE_SEVER_KEY;
   let fcm = new FCM(serverKey);
 
   let message = {
     to: token,
     notification: {
-      title: 'NotifcatioTestAPP',
-      body: '{"Message from node js app"}',
+      title,
+      body,
     },
 
-    data: {
-      // you can send only notification or only data(or include both)
-      title: 'ok cdfsdsdfsd',
-      body: '{"name" : "okg ooggle ogrlrl","product_id" : "123","final_price" : "0.00035"}',
-    },
+    // data: {
+    //   // you can send only notification or only data(or include both)
+    //   title: 'ok cdfsdsdfsd',
+    //   body: '{"name" : "okg ooggle ogrlrl","product_id" : "123","final_price" : "0.00035"}',
+    // },
   };
 
   fcm.send(message, function (err, response) {
