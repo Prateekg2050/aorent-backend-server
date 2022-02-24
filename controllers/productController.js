@@ -67,7 +67,7 @@ const createProduct = asyncHandler(async (req, res, next) => {
     location: {
       type: 'Point',
       coordinates: [longitude, latitude],
-      address: {
+      pickupAddress: {
         address,
         city,
         state,
