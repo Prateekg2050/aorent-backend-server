@@ -54,36 +54,33 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   // Check for flags
   // 1) Product might not exist
-  if (!product) {
-    return next(new AppError('This product does not exists', 404));
-  }
+  if (!product) return next(new AppError('This product does not exists', 404));
 
   // 2) If the product is still under review
-  if (product.underReview) {
+  if (product.underReview)
     return next(
       new AppError(
         'This product is still under review. Please try after sometime',
         400
       )
     );
-  }
 
   // 3) If the product is not verified
-  if (!product.isVerified) {
+  if (!product.isVerified)
     return next(new AppError('This product is not verified', 400));
-  }
 
   // 4)Check if product is already rented out
-  if (product.isRented) {
+  if (product.isRented)
     return next(
       new AppError(
         'This item is already rented out. Please try again later',
         400
       )
     );
-  }
 
-  // TODO: 5) Cannot rent his own product
+  // 5) Cannot rent his own product
+  if (product.user.toHexString() === req.user._id.toHexString())
+    return next(new AppError('You cannot rent your own product', 400));
 
   // Rent manipultion
   const rent = product.rent;
@@ -99,14 +96,14 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   // get return date according to monthly or hourly
   if (rent.durationType === 'monthly') {
-    console.log('monthly');
+    // console.log('monthly');
     returnDate = dayjs(
       dayjs(startDate).valueOf() + duration * 30 * 86400 * 1000
     ).format();
   }
 
   if (rent.durationType === 'hourly') {
-    console.log('hourly');
+    // console.log('hourly');
     returnDate = dayjs(
       dayjs(startDate).valueOf() + duration * 60 * 60 * 1000
     ).format();
@@ -176,7 +173,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc    Cancel a order
+// @desc    Cancel a order automatically if user fails to pay for order in 15 minutes
 // @route   util function
 // @access  Internal access only
 const cancelOrder = asyncHandler(async (orderId) => {
@@ -185,13 +182,12 @@ const cancelOrder = asyncHandler(async (orderId) => {
   if (order.isPaid) {
     console.log('order was paid');
   } else {
-    // TODO: Reset variables
     await order.remove();
   }
   console.log('order deleted due to payment failure');
 });
 
-// @desc    Update order to Paid
+// @desc    Update order to paid / Check payment id from front end
 // @route   PUT /orders/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res, next) => {
@@ -202,10 +198,10 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
     return next(new AppError('Order creation ID is required', 400));
 
   if (!razorpayPaymentId)
-    return next(new AppError('razorpayPaymentId is required', 400));
+    return next(new AppError('RazorPay Payment ID is required', 400));
 
   if (!razorpaySignature)
-    return next(new AppError('razorpaySignature is required', 400));
+    return next(new AppError('RazorPay Signature is required', 400));
 
   // 1) get the order
   const order = await Order.findById(req.params.id);
@@ -217,8 +213,8 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
         400
       )
     );
+  // console.log(order);
 
-  console.log(order);
   // and product
   const product = await Product.findById(order.item);
   if (!product)
@@ -250,39 +246,35 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
     await transaction.save();
   }
 
-  if (order) {
-    // 3) Set rented fields in product
+  // 3) Set rented fields in product
 
-    // Update product rented out variables and update the product sales
-    product.rentedDate = order.startDate;
-    product.returnDate = order.proposedReturnDate;
-    product.currentlyRentedBy = req.user._id;
-    product.isRented = true;
-    product.sales.revenue = product.sales.revenue + order.subTotal;
-    product.sales.users = product.sales.users + 1;
+  // Update product rented out variables and update the product sales
+  product.rentedDate = order.startDate;
+  product.returnDate = order.proposedReturnDate;
+  product.currentlyRentedBy = req.user._id;
+  product.isRented = true;
+  product.sales.revenue = product.sales.revenue + order.subTotal;
+  product.sales.users = product.sales.users + 1;
 
-    await product.save({ validateBeforeSave: false });
+  await product.save({ validateBeforeSave: false });
 
-    // user currently renting push
-    const user = await User.findById(req.user._id);
-    user.currentlyRenting.unshift(order.item);
+  // user currently renting push
+  const user = await User.findById(req.user._id);
+  user.currentlyRenting.unshift(order.item);
 
-    // Save user
-    await user.save({ validateBeforeSave: false });
+  // Save user
+  await user.save({ validateBeforeSave: false });
 
-    // 4)  order update
-    order.isPaid = true;
-    order.paidAt = Date.now();
+  // 4)  order update
+  order.isPaid = true;
+  order.paidAt = Date.now();
 
-    const updateOrder = await order.save();
-    res.json({
-      status: 'success',
-      data: updateOrder,
-      message: 'Paid for order successfully',
-    });
-  } else {
-    next(new AppError('Order not found', 404));
-  }
+  const updateOrder = await order.save();
+  res.json({
+    status: 'success',
+    data: updateOrder,
+    message: 'Paid for order successfully',
+  });
 });
 
 // @desc    Update order to picked up
@@ -291,12 +283,12 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
 const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate('user item');
 
-  console.log(order.item);
+  // console.log(order.item);
 
   // 1) Check if order is available
   if (!order) next(new AppError('Order not found', 404));
 
-  // 2) Check for permission
+  // 2) Check for permission (owner of product is allowed to access)
   if (req.user._id.toHexString() !== order.item.user.toHexString())
     return next(
       new AppError(
