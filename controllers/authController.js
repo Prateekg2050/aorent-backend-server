@@ -49,11 +49,14 @@ const loginUser = asyncHandler(async (req, res, next) => {
   }
 
   // 2) check if user exists and password is correct
-  const user = await User.findOne({ email }).select('+password');
+  let user = await User.findOne({ email }).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
+
+  // fetching again to hide user password
+  user = await User.findById(user._id);
 
   // 3) if everything ok , send token to client
   createAndSendToken(user, 200, res);

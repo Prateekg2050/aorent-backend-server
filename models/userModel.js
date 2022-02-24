@@ -36,6 +36,7 @@ const userSchema = mongoose.Schema(
     passwordConfirm: {
       type: String,
       required: [true, 'Please confirm your password'],
+      select: false,
       validate: {
         // This only works on CREATE or SAVE !!
         validator: function (val) {
@@ -103,6 +104,11 @@ const userSchema = mongoose.Schema(
     active: { type: Boolean, default: true, required: true },
 
     // notifications
+    fcm: {
+      token: { type: String },
+      date: Date,
+    },
+
     notification: [
       {
         date: Date,

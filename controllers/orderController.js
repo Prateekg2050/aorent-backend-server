@@ -68,7 +68,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // 3) If the product is verified
+  // 3) If the product is not verified
   if (!product.isVerified) {
     return next(new AppError('This product is not verified', 400));
   }
@@ -140,7 +140,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
     serviceCharge,
     totalPrice,
     startDate,
-    proposedReturnDate,
+    proposedReturnDate: returnDate,
   });
 
   const createdOrder = await order.save();
@@ -162,12 +162,9 @@ const createOrder = asyncHandler(async (req, res, next) => {
   await order.save({ validateBeforeSave: false });
 
   // giving 15 minutes to pay the order else order will be deleted
-
-  // TODO: production will have this code
-
-  // setTimeout(function () {
-  //   cancelOrder(createdOrder._id);
-  // }, 2 * 60 * 1000);
+  setTimeout(function () {
+    cancelOrder(createdOrder._id);
+  }, 2 * 60 * 1000);
 
   res.status(201).json({
     status: 'success',
@@ -175,6 +172,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
     data: {
       createdOrder,
     },
+    message: 'Order created successfully',
   });
 });
 

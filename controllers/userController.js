@@ -92,11 +92,11 @@ const kycVerify = asyncHandler(async (req, res, next) => {
   }
 });
 
-// @desc        Start user verification
-// @route       PATCH /users/:id/kycVerify
+// @desc        Get user listings
+// @route       GET /users/myRentals
 // @access      Private
 const getListings = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).populate('listings');
   let listings = user.listing;
   if (!listings) {
     listings = [];
@@ -106,8 +106,42 @@ const getListings = asyncHandler(async (req, res, next) => {
     status: 'success',
     results: listings.length,
     rentals: listings,
+    message: 'User MyRentals fetched successfully',
   });
 });
+
+// @desc        Set fcm token
+// @route       GET /users/subscribeNotifications
+// @access      Private
+const setFcmToken = asyncHandler(async (req, res, next) => {
+  if (!req.body.token)
+    return next(new AppError('Please send fcm token in body'), 400);
+
+  const user = await User.findOneAndUpdate(
+    { _id: req.user._id },
+    {
+      fcm: {
+        token: req.body.token,
+        date: Date.now(),
+      },
+    }
+  );
+
+  res.status(200).json({
+    status: 'success',
+    data: user.fcm,
+    message: 'User FCM token updated successfully',
+  });
+});
+
+export {
+  getMe,
+  updateUserProfile,
+  kycVerify,
+  deleteMe,
+  getListings,
+  setFcmToken,
+};
 
 // @desc        To get total revenue with date
 // @route       GET /users/:productId/revenue
@@ -127,5 +161,3 @@ const revenue = asyncHandler(async (req, res, next) => {
     },
   ]);
 });
-
-export { getMe, updateUserProfile, kycVerify, deleteMe, getListings };
