@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import User from '../models/userModel.js';
 import Order from '../models/orderModel.js';
 import AppError from '../utils/appError.js';
+import { sendNotification } from '../utils/fcm.js';
 
 // @desc        Get user profile
 // @route       GET /users/profile
@@ -112,11 +113,11 @@ const getListings = asyncHandler(async (req, res, next) => {
 });
 
 // @desc        Set fcm token
-// @route       GET /users/subscribeNotifications
+// @route       POST /users/subscribeNotifications
 // @access      Private
 const setFcmToken = asyncHandler(async (req, res, next) => {
   if (!req.body.token)
-    return next(new AppError('Please send fcm token in body'), 400);
+    return next(new AppError('Please send fcm token in body', 400));
 
   const user = await User.findOneAndUpdate(
     { _id: req.user._id },
@@ -125,7 +126,14 @@ const setFcmToken = asyncHandler(async (req, res, next) => {
         token: req.body.token,
         date: Date.now(),
       },
-    }
+    },
+    { new: true, safe: true, upsert: true }
+  );
+
+  sendNotification(
+    user.fcm.token,
+    `Hello ${user.name}`,
+    'Please check us out 👋'
   );
 
   res.status(200).json({
