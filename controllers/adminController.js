@@ -68,14 +68,22 @@ const underReviewUsers = asyncHandler(async (req, res, next) => {
 // @route       PATCH /admin/user/:id/:approve
 // @access      Private/Admin
 const approveUser = asyncHandler(async (req, res, next) => {
-  if (!req.params.approve === 'approve' || !req.params.approve === 'reject') {
+  if (!(req.params.approve === 'approve') && !(req.params.approve === 'reject'))
     return next(new AppError('Please select reject or approve option', 400));
-  }
 
-  let doc = undefined;
+  let user = await User.findById(req.params.id);
+
+  // Check for flags
+  // 1) If user has applied for kyc verification
+  if (!user.underReview)
+    return next(new AppError('User has not applied for verification', 400));
+
+  // 2) If user is already a verified user
+  if (user.isVerified)
+    return next(new AppError('User is already verified', 400));
 
   if (req.params.approve === 'approve') {
-    doc = await User.findByIdAndUpdate(
+    user = await User.findByIdAndUpdate(
       req.params.id,
       { underReview: false, isVerified: true },
       { new: true }
@@ -90,7 +98,7 @@ const approveUser = asyncHandler(async (req, res, next) => {
   }
 
   if (req.params.approve === 'reject') {
-    doc = await User.findByIdAndUpdate(
+    user = await User.findByIdAndUpdate(
       req.params.id,
       { underReview: false, isVerified: false, kycDetails: {} },
       { new: true }
@@ -104,14 +112,14 @@ const approveUser = asyncHandler(async (req, res, next) => {
     );
   }
 
-  if (!doc) {
-    return next(new AppError('No document found with that ID', 404));
+  if (!user) {
+    return next(new AppError('No user found with that ID', 404));
   }
 
   res.status(200).json({
     status: 'success',
     data: {
-      doc,
+      user,
     },
   });
 });

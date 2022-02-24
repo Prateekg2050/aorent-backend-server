@@ -56,18 +56,19 @@ const deleteMe = asyncHandler(async (req, res, next) => {
 const kycVerify = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id).select('-password');
 
+  if (user.isVerified)
+    return next(new AppError('You are already a verified user', 400));
+
   if (
     !req.body.name ||
     !req.body.idType ||
     !req.body.idNumber ||
     !req.body.idImage
-  ) {
+  )
     return next(new AppError('Please give all the required parameters', 400));
-  }
 
-  if (req.body.idImage.length !== 2) {
+  if (req.body.idImage.length !== 2)
     return next(new AppError('Please send only two images', 400));
-  }
 
   const kycVerify = {
     name: req.body.name,
