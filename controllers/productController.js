@@ -288,11 +288,7 @@ const wishlistProduct = asyncHandler(async (req, res, next) => {
   if (req.params.addremove === 'add') {
     user = await User.findOneAndUpdate(
       { _id: req.user._id },
-      {
-        $push: {
-          wishlist: req.params.id,
-        },
-      },
+      { $addToSet: { wishlist: req.params.id } },
       { new: true, safe: true, upsert: true }
     );
   }

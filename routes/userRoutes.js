@@ -6,6 +6,7 @@ import {
   updateUserProfile,
   kycVerify,
   deleteMe,
+  getListings,
 } from '../controllers/userController.js';
 import {
   loginUser,
@@ -30,6 +31,7 @@ router.patch('/updateMyPassword', updatePassword);
 
 //Do not use to update password
 router.route('/me').get(getMe).patch(updateUserProfile).delete(deleteMe);
+router.get('/myRentals', getListings);
 router.route('/:id/kycVerify').patch(kycVerify);
 
 export default router;

@@ -92,6 +92,23 @@ const kycVerify = asyncHandler(async (req, res, next) => {
   }
 });
 
+// @desc        Start user verification
+// @route       PATCH /users/:id/kycVerify
+// @access      Private
+const getListings = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+  let listings = user.listing;
+  if (!listings) {
+    listings = [];
+  }
+
+  res.status(200).json({
+    status: 'success',
+    results: listings.length,
+    rentals: listings,
+  });
+});
+
 // @desc        To get total revenue with date
 // @route       GET /users/:productId/revenue
 // @access      Private
@@ -111,4 +128,4 @@ const revenue = asyncHandler(async (req, res, next) => {
   ]);
 });
 
-export { getMe, updateUserProfile, kycVerify, deleteMe };
+export { getMe, updateUserProfile, kycVerify, deleteMe, getListings };
