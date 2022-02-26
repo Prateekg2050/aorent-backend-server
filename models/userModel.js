@@ -74,8 +74,7 @@ const userSchema = mongoose.Schema(
     // backlog amount
     backlog: {
       referenceOrder: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Order',
+        type: String,
       },
       amount: { type: Number, default: 0 },
       reason: { type: String, default: '' },

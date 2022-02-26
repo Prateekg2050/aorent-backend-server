@@ -82,12 +82,13 @@ const createOrder = asyncHandler(async (req, res, next) => {
   if (product.user.toHexString() === req.user._id.toHexString())
     return next(new AppError('You cannot rent your own product', 400));
 
-  // Rent manipultion
+  /*********************** Rent manipultion ***********************/
+
   const rent = product.rent;
   let serviceCharge = req.body.serviceCharge || 0;
   let returnDate, subTotal, deposit, totalPrice;
 
-  // check if min. duration is more than given duration
+  // check if minimum duration is more than given duration
   if (rent.minimumDuration > duration) {
     return next(
       new AppError('Duration provided is less than minimum duration', 400)
@@ -96,14 +97,12 @@ const createOrder = asyncHandler(async (req, res, next) => {
 
   // get return date according to monthly or hourly
   if (rent.durationType === 'monthly') {
-    // console.log('monthly');
     returnDate = dayjs(
       dayjs(startDate).valueOf() + duration * 30 * 86400 * 1000
     ).format();
   }
 
   if (rent.durationType === 'hourly') {
-    // console.log('hourly');
     returnDate = dayjs(
       dayjs(startDate).valueOf() + duration * 60 * 60 * 1000
     ).format();
@@ -124,7 +123,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
   //TODO: Take the factor of coupon code
 
   // Make totalPrice
-  totalPrice = subTotal + deposit + serviceCharge;
+  totalPrice = subTotal + deposit + serviceCharge + user.backlog.amount;
 
   // Create the order
   const order = new Order({
@@ -137,6 +136,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
     serviceCharge,
     totalPrice,
     startDate,
+    backlogCharged: user.backlog,
     proposedReturnDate: returnDate,
   });
 
@@ -320,6 +320,9 @@ const updateOrderToPickedUp = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc    Update order rerturned back to owner
+// @route   PUT /orders/:id/return
+// @access  Private
 const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate('user item');
 
@@ -330,7 +333,7 @@ const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   if (req.user._id.toHexString() !== order.item.user.toHexString())
     return next(
       new AppError(
-        'Only the owner of product can update it to be picked up',
+        'Only the owner of product can update it to be returned',
         401
       )
     );
@@ -339,29 +342,26 @@ const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   order.returnDelivered = true;
   order.returnDate = Date.now();
 
-  //TODO: add backlog if late submit
-  // console.log(new Date(Date.now()));
-  // console.log(new Date(order.item.returnDate));
+  // 3) Add backlog if late submit
 
-  if (new Date(Date.now()) > new Date(order.returnDate)) {
-    console.log('in if');
-    console.log(order.user._id);
-    const user = await User.findByIdAndUpdate(order.user._id, {
-      backlog: {
-        referenceOrder: order._id,
-        amount: order.item.rent.lateFees,
-        reason: 'You delivered the item back late than it was expected to.',
-      },
-    });
+  // console.log(new Date(order.proposedReturnDate));
+  // console.log(new Date(order.returnDate));
+  if (new Date(order.returnDate) > new Date(order.proposedReturnDate)) {
+    const user = await User.findById(order.user._id);
+    let oldBacklog = user.backlog;
+    let newBacklog = {
+      referenceOrder: `${oldBacklog.referenceOrder} ${order._id}`,
+      amount: oldBacklog.amount + order.item.rent.lateFees,
+      reason: 'You delivered the item back late than it was expected to.',
+    };
+    user.backlog = newBacklog;
+    await user.save({ validateBeforeSave });
 
-    console.log(user);
-    // console.log(order.returnDate);
+    // console.log(user);
   }
 
-  const date = Date.now();
-  // console.log(date);
-
-  console.log(x);
+  // for creating error and debugging
+  // console.log(x);
 
   // change back product variables
   const product = await Product.findById(order.item._id);
@@ -378,6 +378,7 @@ const updateOrderToReturned = asyncHandler(async (req, res, next) => {
   res.json({
     status: 'success',
     data: updateOrder,
+    message: 'Rentee has delivered product back to owner',
   });
 });
 

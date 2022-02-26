@@ -37,6 +37,7 @@ const orderSchema = mongoose.Schema(
       required: true,
       default: 0.0,
     },
+    backlogCharged: {},
     totalPrice: {
       type: Number,
       required: true,
