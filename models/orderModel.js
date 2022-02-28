@@ -12,12 +12,6 @@ const orderSchema = mongoose.Schema(
       required: true,
       ref: 'Product',
     },
-    shippingAddress: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      pinCode: { type: Number, required: true },
-    },
     subTotal: {
       type: Number,
       required: true,
