@@ -45,7 +45,7 @@ const createProductReview = asyncHandler(async (req, res, next) => {
   });
 });
 
-// @desc        Get all reviews
+// @desc        Get all reviews on a product
 // @route       GET /products/:productId/review
 // @access      Public
 const getAllReviews = asyncHandler(async (req, res, next) => {
@@ -63,7 +63,7 @@ const getAllReviews = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: doc.length,
-    data: { doc },
+    data: doc,
   });
 });
 

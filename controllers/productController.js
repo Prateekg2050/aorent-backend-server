@@ -307,6 +307,7 @@ const wishlistProduct = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
+    result: user.wishlist.length,
     data: user.wishlist,
     message: 'User wishlist fetched successfully',
   });
