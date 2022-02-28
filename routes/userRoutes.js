@@ -7,6 +7,7 @@ import {
   kycVerify,
   deleteMe,
   getListings,
+  getWishlist,
   setFcmToken,
 } from '../controllers/userController.js';
 import {
@@ -35,6 +36,7 @@ router.route('/me').get(getMe).patch(updateUserProfile).delete(deleteMe);
 
 router.post('/subscribeNotifications', setFcmToken);
 router.get('/myRentals', getListings);
+router.get('/wishlist', getWishlist);
 router.route('/:id/kycVerify').patch(kycVerify);
 
 export default router;

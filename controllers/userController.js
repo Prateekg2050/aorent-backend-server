@@ -112,6 +112,24 @@ const getListings = asyncHandler(async (req, res, next) => {
   });
 });
 
+// @desc        Get user wishlist
+// @route       GET /users/myRentals
+// @access      Private
+const getWishlist = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id).populate('wishlist');
+  let wishlist = user.wishlist;
+  if (!user.wishlist) {
+    wishlist = [];
+  }
+
+  res.status(200).json({
+    status: 'success',
+    results: wishlist.length,
+    rentals: wishlist,
+    message: 'User wishlist fetched successfully',
+  });
+});
+
 // @desc        Set fcm token
 // @route       POST /users/subscribeNotifications
 // @access      Private
@@ -149,6 +167,7 @@ export {
   kycVerify,
   deleteMe,
   getListings,
+  getWishlist,
   setFcmToken,
 };
 

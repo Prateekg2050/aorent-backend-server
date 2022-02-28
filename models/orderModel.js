@@ -18,10 +18,6 @@ const orderSchema = mongoose.Schema(
       state: { type: String, required: true },
       pinCode: { type: Number, required: true },
     },
-    paymentMethod: {
-      type: String,
-      required: true,
-    },
     subTotal: {
       type: Number,
       required: true,

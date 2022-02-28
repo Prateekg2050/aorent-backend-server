@@ -36,7 +36,7 @@ const createOrder = asyncHandler(async (req, res, next) => {
   }
 
   // extract variables
-  let { item, startDate, duration, shippingAddress, paymentMethod } = req.body;
+  let { item, startDate, duration, shippingAddress } = req.body;
 
   // Check if date is in future or not
   startDate = Date(startDate);
@@ -130,7 +130,6 @@ const createOrder = asyncHandler(async (req, res, next) => {
     user: req.user._id,
     item,
     shippingAddress,
-    paymentMethod,
     subTotal,
     depositCharged: deposit,
     serviceCharge,
