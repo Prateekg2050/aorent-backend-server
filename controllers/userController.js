@@ -99,8 +99,8 @@ const kycVerify = asyncHandler(async (req, res, next) => {
 // @access      Private
 const getListings = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user._id).populate('listings');
-  let listings = user.listing;
-  if (!listings) {
+  let listings = user.listings;
+  if (!user.listings) {
     listings = [];
   }
 

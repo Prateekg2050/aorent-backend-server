@@ -6,7 +6,6 @@ import sendEmail from '../utils/email.js';
 import crypto from 'crypto';
 
 // helper function
-
 const createAndSendToken = (user, statusCode, res) => {
   res.status(statusCode).json({
     status: 'success',
@@ -158,7 +157,7 @@ const updatePassword = asyncHandler(async (req, res, next) => {
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
 
-  await user.save();
+  await user.save({ validateBeforeSave: false });
 
   // 4) Log in user, send JWT
   createAndSendToken(user, 200, res);
