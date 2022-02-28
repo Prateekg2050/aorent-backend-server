@@ -255,6 +255,7 @@ const updateOrderToPaid = asyncHandler(async (req, res, next) => {
   product.isRented = true;
   product.sales.revenue = product.sales.revenue + order.subTotal;
   product.sales.users = product.sales.users + 1;
+  product.isListed = false;
 
   await product.save({ validateBeforeSave: false });
 
